@@ -24,7 +24,7 @@
         .delete-btn { background: var(--danger); border: none; color: white; padding: 8px 14px; border-radius: 20px; cursor: pointer; font-size: 14px; }
         .popup { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
         .popup.active { display: flex; }
-        .popup-card { background: var(--card); border-radius: 20px; padding: 24px; width: 90%; max-width: 360px; text-align: center; animation: slideUp 0.3s ease; }
+        .popup-card { background: var(--card); border-radius: 20px; padding: 24px; width: 90%; max-width: 360px; text-align: center; animation: slideUp 0.3s ease; max-height: 85vh; overflow-y: auto; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .section-title { color: var(--accent); font-size: 18px; margin: 15px 0 8px 0; border-bottom: 1px solid #333; padding-bottom: 4px; }
         .exam-row, .absence-row { background: rgba(255,255,255,0.04); padding: 8px 10px; border-radius: 8px; margin: 4px 0; font-size: 14px; }
