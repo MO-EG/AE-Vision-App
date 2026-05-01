@@ -87,18 +87,15 @@
 
         async function fetchAndShowStudent(id) {
             try {
-                const resp = await fetch(SCRIPT_URL + "?id=" + id);
-                const html = await resp.text();
-                const name = html.match(/<div class="student-name">(.*?)<\/div>/)?.[1] || "غير معروف";
-                const score = html.match(/<div class="total-score">.*?(\d+).*?<\/div>/)?.[1] || "0";
-                const rankGroup = html.match(/المجموعة: (.*?)</)?.[1] || "-";
-                const rankGrade = html.match(/الصف: (.*?)</)?.[1] || "-";
-                document.getElementById('detailName').textContent = name;
-                document.getElementById('detailScore').innerHTML = `🏅 ${score}`;
-                document.getElementById('detailRank').innerHTML = `📊 ترتيب المجموعة: ${rankGroup}<br>📈 ترتيب الصف: ${rankGrade}`;
+                const resp = await fetch(SCRIPT_URL + "?format=json&id=" + id);
+                const student = await resp.json();
+                if (student.error) throw new Error(student.error);
+                document.getElementById('detailName').textContent = student.Name || "غير معروف";
+                document.getElementById('detailScore').innerHTML = `🏅 ${student["Total Score"] || '0'}`;
+                document.getElementById('detailRank').innerHTML = `📊 ترتيب المجموعة: ${student["الترتيب على المجموعة"] || '-'}<br>📈 ترتيب الصف: ${student["الترتيب على الصف"] || '-'}`;
                 document.getElementById('detailPopup').classList.add('active');
                 if (!scannedStudents.find(s => s.id === id) && scannedStudents.length < 5) {
-                    scannedStudents.push({ id, name, score });
+                    scannedStudents.push({ id: id, name: student.Name || "غير معروف", score: student["Total Score"] || "0" });
                     localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents));
                     renderStudentList();
                 }
