@@ -26,6 +26,7 @@
         .popup.active { display: flex; }
         .popup-card { background: var(--card); border-radius: 20px; padding: 24px; width: 90%; max-width: 360px; text-align: center; animation: slideUp 0.3s ease; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .error-msg { color: var(--danger); margin: 10px 0; }
     </style>
 </head>
 <body>
@@ -51,13 +52,14 @@
             <div id="detailEval" style="color:#aaa; font-size:14px;"></div>
             <div id="detailExams" style="color:#aaa; font-size:14px;"></div>
             <div id="detailAbsences" style="color:#aaa; font-size:14px;"></div>
+            <div id="errorMessage" class="error-msg"></div>
             <button onclick="closeDetail()" style="background:var(--accent); border:none; padding:10px 30px; border-radius:20px; margin-top:16px; color:#000; font-weight:bold;">إغلاق</button>
         </div>
     </div>
 
     <script>
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx5ZUef11RjJznJ7UZY7lQSNVWhhhylGcinQBE7LGpvHn6UUGFDjNvQQIIww7kvbKoXRA/exec";
+        // ⚠️ استبدل هذا بالرابط الحقيقي من Apps Script
+        const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
         let scannedStudents = [];
         let html5QrCode;
         const saved = localStorage.getItem('scannedStudents');
@@ -86,23 +88,49 @@
         }
 
         async function fetchAndShowStudent(id) {
+            // إخفاء أي خطأ سابق
+            document.getElementById('errorMessage').textContent = '';
             try {
-                const resp = await fetch(SCRIPT_URL + "?id=" + id);
+                const url = SCRIPT_URL + "?id=" + id;
+                const resp = await fetch(url);
+                if (!resp.ok) {
+                    throw new Error("حالة الاستجابة: " + resp.status);
+                }
                 const html = await resp.text();
-                const name = html.match(/<div class="student-name">(.*?)<\/div>/)?.[1] || "غير معروف";
-                const score = html.match(/<div class="total-score">.*?(\d+).*?<\/div>/)?.[1] || "0";
-                const rankGroup = html.match(/المجموعة: (.*?)</)?.[1] || "-";
-                const rankGrade = html.match(/الصف: (.*?)</)?.[1] || "-";
+                
+                // التحقق مما إذا كانت HTML تحتوي على رسالة خطأ
+                if (html.includes("❌ خطأ") || html.includes("غير مسجل") || html.includes("غير متاحة")) {
+                    throw new Error("الطالب غير موجود في النظام");
+                }
+
+                // استخراج البيانات (بمرونة أكثر)
+                let name = html.match(/<div class="student-name">(.*?)<\/div>/)?.[1] || "غير معروف";
+                let score = html.match(/<div class="total-score"[^>]*>(.*?)<\/div>/)?.[1]?.trim() || "0";
+                // إزالة الايموجي والنص الإضافي
+                score = score.replace(/[^0-9]/g, '') || score;
+                
+                let rankGroup = html.match(/المجموعة:\s*(.*?)</)?.[1] || "-";
+                let rankGrade = html.match(/الصف:\s*(.*?)</)?.[1] || "-";
+                
+                // عرض البيانات
                 document.getElementById('detailName').textContent = name;
                 document.getElementById('detailScore').innerHTML = `🏅 ${score}`;
                 document.getElementById('detailRank').innerHTML = `📊 ترتيب المجموعة: ${rankGroup}<br>📈 ترتيب الصف: ${rankGrade}`;
                 document.getElementById('detailPopup').classList.add('active');
+                
+                // إضافة إلى القائمة
                 if (!scannedStudents.find(s => s.id === id) && scannedStudents.length < 5) {
                     scannedStudents.push({ id, name, score });
                     localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents));
                     renderStudentList();
                 }
-            } catch(e) { alert("فشل جلب البيانات"); }
+            } catch(e) {
+                document.getElementById('detailName').textContent = "خطأ";
+                document.getElementById('detailScore').innerHTML = "";
+                document.getElementById('detailRank').innerHTML = "";
+                document.getElementById('errorMessage').textContent = "❌ فشل جلب البيانات: " + e.message;
+                document.getElementById('detailPopup').classList.add('active');
+            }
         }
 
         function renderStudentList() {
