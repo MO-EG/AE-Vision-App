@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AE Vision - الطالب</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        :root { --bg: #0d1117; --card: #161b22; --accent: #e2b04a; --text: #e6e6e6; --danger: #b22222; --header-bg: #1a1a2e; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        .header { width: 100%; background: var(--header-bg); padding: 16px; text-align: center; border-bottom: 3px solid var(--accent); display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .header img { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--accent); }
+        .header h1 { font-size: 24px; color: var(--accent); }
+        .container { width: 100%; max-width: 420px; padding: 16px; flex: 1; }
+        .scan-btn { background: var(--accent); color: #000; border: none; padding: 14px 24px; border-radius: 30px; font-size: 18px; font-weight: bold; width: 100%; cursor: pointer; margin: 16px 0; }
+        #reader { width: 100%; border-radius: 12px; overflow: hidden; margin: 16px 0; }
+        .student-list { margin-top: 16px; background: var(--card); border-radius: 16px; padding: 12px; }
+        .student-list h3 { color: var(--accent); margin-bottom: 8px; }
+        .student-item { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; }
+        .student-name { font-size: 16px; font-weight: bold; }
+        .student-score { color: var(--accent); font-size: 14px; }
+        .delete-btn { background: var(--danger); border: none; color: white; padding: 8px 14px; border-radius: 20px; cursor: pointer; font-size: 14px; }
+        .popup { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
+        .popup.active { display: flex; }
+        .popup-card { background: var(--card); border-radius: 20px; padding: 24px; width: 90%; max-width: 360px; text-align: center; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="logo.png" alt="AE Vision Logo" onerror="this.style.display='none'">
+        <h1>AE Vision</h1>
+    </div>
+    <div class="container">
+        <button class="scan-btn" id="scanButton" onclick="startScan()">📷 مسح QR</button>
+        <div id="reader"></div>
+        <div class="student-list" id="studentListContainer" style="display:none;">
+            <h3>الطلاب (5 كحد أقصى)</h3>
+            <div id="studentList"></div>
+        </div>
+    </div>
+    <!-- نافذة تفاصيل الطالب -->
+    <div class="popup" id="detailPopup">
+        <div class="popup-card">
+            <img src="logo.png" style="width:60px; border-radius:50%;" onerror="this.style.display='none'">
+            <h2 id="detailName" style="color:var(--accent); margin:12px 0;"></h2>
+            <div id="detailScore" style="font-size: 24px; font-weight: bold;"></div>
+            <div id="detailRank" style="margin:8px 0;"></div>
+            <div id="detailEval" style="color:#aaa; font-size:14px;"></div>
+            <div id="detailExams" style="color:#aaa; font-size:14px;"></div>
+            <div id="detailAbsences" style="color:#aaa; font-size:14px;"></div>
+            <button onclick="closeDetail()" style="background:var(--accent); border:none; padding:10px 30px; border-radius:20px; margin-top:16px; color:#000; font-weight:bold;">إغلاق</button>
+        </div>
+    </div>
+
+    <script>
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        const SCRIPT_URL = "https://script.google.com/macros/s/link/exec";
+        let scannedStudents = [];
+        let html5QrCode;
+        const saved = localStorage.getItem('scannedStudents');
+        if (saved) { scannedStudents = JSON.parse(saved); renderStudentList(); }
+
+        async function startScan() {
+            if (scannedStudents.length >= 5) { alert("الحد الأقصى 5 طلاب"); return; }
+            if (html5QrCode) { try { html5QrCode.stop(); } catch(e) {} }
+            html5QrCode = new Html5Qrcode("reader");
+            document.getElementById('scanButton').style.display = 'none';
+            try {
+                await html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    async (code) => {
+                        html5QrCode.stop();
+                        document.getElementById('scanButton').style.display = 'block';
+                        await fetchAndShowStudent(code.trim());
+                    },
+                    () => {}
+                );
+            } catch(err) { 
+                alert("تعذر الوصول إلى الكاميرا"); 
+                document.getElementById('scanButton').style.display = 'block';
+            }
+        }
+
+        async function fetchAndShowStudent(id) {
+            try {
+                const resp = await fetch(SCRIPT_URL + "?id=" + id);
+                const html = await resp.text();
+                const name = html.match(/<div class="student-name">(.*?)<\/div>/)?.[1] || "غير معروف";
+                const score = html.match(/<div class="total-score">.*?(\d+).*?<\/div>/)?.[1] || "0";
+                const rankGroup = html.match(/المجموعة: (.*?)</)?.[1] || "-";
+                const rankGrade = html.match(/الصف: (.*?)</)?.[1] || "-";
+                document.getElementById('detailName').textContent = name;
+                document.getElementById('detailScore').innerHTML = `🏅 ${score}`;
+                document.getElementById('detailRank').innerHTML = `📊 ترتيب المجموعة: ${rankGroup}<br>📈 ترتيب الصف: ${rankGrade}`;
+                document.getElementById('detailPopup').classList.add('active');
+                if (!scannedStudents.find(s => s.id === id) && scannedStudents.length < 5) {
+                    scannedStudents.push({ id, name, score });
+                    localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents));
+                    renderStudentList();
+                }
+            } catch(e) { alert("فشل جلب البيانات"); }
+        }
+
+        function renderStudentList() {
+            const c = document.getElementById('studentListContainer');
+            const l = document.getElementById('studentList');
+            if (scannedStudents.length > 0) {
+                c.style.display = 'block';
+                l.innerHTML = scannedStudents.map((s,i) => `
+                    <div class="student-item">
+                        <div><div class="student-name">${s.name}</div><div class="student-score">الدرجة: ${s.score}</div></div>
+                        <button class="delete-btn" onclick="removeStudent(${i})">حذف</button>
+                    </div>`).join('');
+            } else { c.style.display = 'none'; }
+        }
+
+        function removeStudent(i) { scannedStudents.splice(i,1); localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents)); renderStudentList(); }
+        function closeDetail() { document.getElementById('detailPopup').classList.remove('active'); }
+    </script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AE Vision - المعلم</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        :root { --bg: #0d1117; --card: #161b22; --accent: #e2b04a; --text: #e6e6e6; --header-bg: #1a1a2e; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        .header { width: 100%; background: var(--header-bg); padding: 16px; text-align: center; border-bottom: 3px solid var(--accent); display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .header img { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--accent); }
+        .header h1 { font-size: 24px; color: var(--accent); }
+        .container { width: 100%; max-width: 420px; padding: 16px; flex: 1; }
+        .refresh-btn { background: var(--accent); color: #000; border: none; padding: 10px 16px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin: 8px 0; }
+        .refresh-btn:disabled { opacity: 0.6; }
+        #searchInput { width: 100%; padding: 14px 20px; border-radius: 30px; border: none; background: var(--card); color: var(--text); font-size: 16px; margin: 16px 0; outline: none; border: 2px solid transparent; transition: border-color 0.3s; }
+        #searchInput:focus { border-color: var(--accent); }
+        .student-card { background: var(--card); border-radius: 16px; padding: 16px; margin: 12px 0; border-right: 4px solid var(--accent); transition: transform 0.2s; }
+        .student-card:hover { transform: translateX(-4px); }
+        .student-name { font-size: 18px; font-weight: bold; color: var(--accent); }
+        .score { font-size: 16px; margin: 8px 0; }
+        .rank-group, .rank-grade { font-size: 14px; }
+        .exams, .absences { font-size: 13px; color: #bbb; margin-top: 4px; }
+        .no-results { text-align: center; margin: 40px 0; color: #aaa; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="logo.png" alt="AE Vision Logo" onerror="this.style.display='none'">
+        <h1>AE Vision (معلم)</h1>
+    </div>
+    <div class="container">
+        <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">🔄 تحديث البيانات</button>
+        <input type="text" id="searchInput" placeholder="🔍 ابحث باسم الطالب..." oninput="search()">
+        <div id="results">⏳ جاري التحميل...</div>
+    </div>
+
+    <script>
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        const SCRIPT_URL = "https://script.google.com/macros/s/link/exec";
+        let allStudents = [];
+
+        async function fetchAllStudents() {
+            try {
+                const resp = await fetch(SCRIPT_URL + "?action=getAll");
+                allStudents = await resp.json();
+                displayStudents(allStudents);
+            } catch(e) { document.getElementById('results').innerHTML = '<div class="no-results">⚠️ تعذر تحميل البيانات</div>'; }
+        }
+
+        async function refreshData() {
+            const btn = document.getElementById('refreshBtn');
+            btn.disabled = true;
+            btn.textContent = "⏳ جاري التحديث...";
+            try {
+                const resp = await fetch(SCRIPT_URL + "?action=getAll");
+                allStudents = await resp.json();
+                search();
+            } catch(e) { alert("❌ فشل تحديث البيانات"); }
+            finally { btn.disabled = false; btn.textContent = "🔄 تحديث البيانات"; }
+        }
+
+        function search() {
+            const q = document.getElementById('searchInput').value.trim().toLowerCase();
+            const filtered = q ? allStudents.filter(s => s.Name && s.Name.toLowerCase().includes(q)) : allStudents;
+            displayStudents(filtered);
+        }
+
+        function displayStudents(students) {
+            const c = document.getElementById('results');
+            if (students.length === 0) { c.innerHTML = '<div class="no-results">لا يوجد طلاب</div>'; return; }
+            c.innerHTML = students.map(s => `
+                <div class="student-card">
+                    <div class="student-name">${s.Name || '-'}</div>
+                    <div class="score">🏅 النتيجة: ${s["Total Score"] || '0'}</div>
+                    <div class="rank-group">📊 ترتيب المجموعة: ${s["الترتيب على المجموعة"] || '-'}</div>
+                    <div class="rank-grade">📈 ترتيب الصف: ${s["الترتيب على الصف"] || '-'}</div>
+                    <div class="exams">🧮 الامتحانات: ${(s["Exams"] || 'لا يوجد').replace(/\n/g, '<br>')}</div>
+                    <div class="absences">🕓 الغياب: ${(s["Absences"] || 'لا يوجد').replace(/\n/g, '<br>')}</div>
+                </div>
+            `).join('');
+        }
+
+        fetchAllStudents();
+    </script>
+</body>
+</html>
