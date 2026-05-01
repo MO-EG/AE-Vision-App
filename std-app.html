@@ -24,8 +24,10 @@
         .delete-btn { background: var(--danger); border: none; color: white; padding: 8px 14px; border-radius: 20px; cursor: pointer; font-size: 14px; }
         .popup { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
         .popup.active { display: flex; }
-        .popup-card { background: var(--card); border-radius: 20px; padding: 24px; width: 90%; max-width: 360px; text-align: center; animation: slideUp 0.3s ease; }
+        .popup-card { background: var(--card); border-radius: 20px; padding: 24px; width: 90%; max-width: 360px; text-align: center; animation: slideUp 0.3s ease; max-height: 85vh; overflow-y: auto; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .section-title { color: var(--accent); font-size: 18px; margin: 15px 0 8px 0; border-bottom: 1px solid #333; padding-bottom: 4px; }
+        .exam-row, .absence-row { background: rgba(255,255,255,0.04); padding: 8px 10px; border-radius: 8px; margin: 4px 0; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -36,8 +38,9 @@
     <div class="container">
         <button class="scan-btn" id="scanButton" onclick="startScan()">📷 مسح QR</button>
         <div id="reader"></div>
+        <p style="text-align:center; color:#aaa; font-size:14px; margin-top:12px;">💡 يمكنك حفظ حتى 5 طلاب على هاتفك والاطلاع عليهم في أي وقت</p>
         <div class="student-list" id="studentListContainer" style="display:none;">
-            <h3>الطلاب (5 كحد أقصى)</h3>
+            <h3>الطلاب</h3>
             <div id="studentList"></div>
         </div>
     </div>
@@ -57,11 +60,20 @@
 
     <script>
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        const SCRIPT_URL = "https://script.google.com/macros/s/link/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/id/exec";
         let scannedStudents = [];
         let html5QrCode;
         const saved = localStorage.getItem('scannedStudents');
         if (saved) { scannedStudents = JSON.parse(saved); renderStudentList(); }
+
+        function extractId(scannedText) {
+            try {
+                const url = new URL(scannedText);
+                return url.searchParams.get('id') || scannedText;
+            } catch(e) {
+                return scannedText;
+            }
+        }
 
         async function startScan() {
             if (scannedStudents.length >= 5) { alert("الحد الأقصى 5 طلاب"); return; }
@@ -75,7 +87,8 @@
                     async (code) => {
                         html5QrCode.stop();
                         document.getElementById('scanButton').style.display = 'block';
-                        await fetchAndShowStudent(code.trim());
+                        const studentId = extractId(code.trim());
+                        await fetchAndShowStudent(studentId);
                     },
                     () => {}
                 );
@@ -87,22 +100,80 @@
 
         async function fetchAndShowStudent(id) {
             try {
-                const resp = await fetch(SCRIPT_URL + "?id=" + id);
-                const html = await resp.text();
-                const name = html.match(/<div class="student-name">(.*?)<\/div>/)?.[1] || "غير معروف";
-                const score = html.match(/<div class="total-score">.*?(\d+).*?<\/div>/)?.[1] || "0";
-                const rankGroup = html.match(/المجموعة: (.*?)</)?.[1] || "-";
-                const rankGrade = html.match(/الصف: (.*?)</)?.[1] || "-";
-                document.getElementById('detailName').textContent = name;
-                document.getElementById('detailScore').innerHTML = `🏅 ${score}`;
-                document.getElementById('detailRank').innerHTML = `📊 ترتيب المجموعة: ${rankGroup}<br>📈 ترتيب الصف: ${rankGrade}`;
-                document.getElementById('detailPopup').classList.add('active');
-                if (!scannedStudents.find(s => s.id === id) && scannedStudents.length < 5) {
-                    scannedStudents.push({ id, name, score });
+                const resp = await fetch(SCRIPT_URL + "?format=json&id=" + id);
+                const student = await resp.json();
+                if (student.error) throw new Error(student.error);
+
+                const fullStudent = {
+                    id: id,
+                    Name: student.Name || "غير معروف",
+                    TotalScore: student["Total Score"] || "0",
+                    RankGroup: student["الترتيب على المجموعة"] || "-",
+                    RankGrade: student["الترتيب على الصف"] || "-",
+                    Evaluations: student["Evaluations"] || "لا يوجد",
+                    Exams: student["Exams"] || "لا يوجد",
+                    Absences: student["Absences"] || "لا يوجد"
+                };
+
+                const existingIndex = scannedStudents.findIndex(s => s.id === id);
+                if (existingIndex === -1) {
+                    if (scannedStudents.length >= 5) {
+                        alert("القائمة ممتلئة (5 طلاب).");
+                        return;
+                    }
+                    scannedStudents.push(fullStudent);
+                    localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents));
+                    renderStudentList();
+                } else {
+                    scannedStudents[existingIndex] = fullStudent;
                     localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents));
                     renderStudentList();
                 }
-            } catch(e) { alert("فشل جلب البيانات"); }
+                showStudentPopup(fullStudent);
+
+            } catch(e) { 
+                alert("فشل جلب البيانات"); 
+            }
+        }
+
+        function showStudentPopup(s) {
+            document.getElementById('detailName').textContent = s.Name;
+            document.getElementById('detailScore').innerHTML = `🏅 ${s.TotalScore}`;
+            document.getElementById('detailRank').innerHTML = `📊 ترتيب المجموعة: ${s.RankGroup}<br>📈 ترتيب الصف: ${s.RankGrade}`;
+
+            let examsHtml = '<div class="section-title">🧮 الامتحانات</div>';
+            if (s.Exams && s.Exams.trim() !== 'لا يوجد' && s.Exams.trim() !== '') {
+                const lines = s.Exams.split('\n').filter(l => l.trim() !== '');
+                lines.forEach(line => {
+                    const match = line.match(/التاريخ:\s*(.*?)\s*[-–]\s*الدرجة:\s*(.*)/);
+                    if (match) {
+                        examsHtml += `<div class="exam-row">📅 ${match[1].trim()} — ${match[2].trim()}</div>`;
+                    } else {
+                        examsHtml += `<div class="exam-row">${line}</div>`;
+                    }
+                });
+            } else {
+                examsHtml += '<div class="exam-row">لا يوجد امتحانات</div>';
+            }
+            document.getElementById('detailExams').innerHTML = examsHtml;
+
+            let absencesHtml = '<div class="section-title">🕓 سجل الغياب</div>';
+            if (s.Absences && s.Absences.trim() !== 'لا يوجد' && s.Absences.trim() !== '') {
+                const lines = s.Absences.split('\n').filter(l => l.trim() !== '');
+                lines.forEach(line => {
+                    const d = line.match(/(\d{4}-\d{2}-\d{2})/);
+                    if (d) {
+                        absencesHtml += `<div class="absence-row">📌 ${d[1]}</div>`;
+                    } else {
+                        absencesHtml += `<div class="absence-row">${line}</div>`;
+                    }
+                });
+            } else {
+                absencesHtml += '<div class="absence-row">لا يوجد غياب</div>';
+            }
+            document.getElementById('detailAbsences').innerHTML = absencesHtml;
+
+            document.getElementById('detailPopup').classList.add('active');
         }
 
         function renderStudentList() {
@@ -111,15 +182,30 @@
             if (scannedStudents.length > 0) {
                 c.style.display = 'block';
                 l.innerHTML = scannedStudents.map((s,i) => `
-                    <div class="student-item">
-                        <div><div class="student-name">${s.name}</div><div class="student-score">الدرجة: ${s.score}</div></div>
-                        <button class="delete-btn" onclick="removeStudent(${i})">حذف</button>
+                    <div class="student-item" onclick="showStudentFromList(${i})" style="cursor:pointer;">
+                        <div>
+                            <div class="student-name">${s.Name}</div>
+                            <div class="student-score">الدرجة: ${s.TotalScore}</div>
+                        </div>
+                        <button class="delete-btn" onclick="event.stopPropagation(); removeStudent(${i})">حذف</button>
                     </div>`).join('');
             } else { c.style.display = 'none'; }
         }
 
-        function removeStudent(i) { scannedStudents.splice(i,1); localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents)); renderStudentList(); }
-        function closeDetail() { document.getElementById('detailPopup').classList.remove('active'); }
+        function showStudentFromList(index) {
+            const s = scannedStudents[index];
+            if (s) showStudentPopup(s);
+        }
+
+        function removeStudent(i) { 
+            scannedStudents.splice(i,1); 
+            localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents)); 
+            renderStudentList(); 
+        }
+
+        function closeDetail() { 
+            document.getElementById('detailPopup').classList.remove('active'); 
+        }
     </script>
 </body>
 </html>
