@@ -26,6 +26,8 @@
         .popup.active { display: flex; }
         .popup-card { background: var(--card); border-radius: 20px; padding: 24px; width: 90%; max-width: 360px; text-align: center; animation: slideUp 0.3s ease; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .section-title { color: var(--accent); font-size: 18px; margin: 15px 0 8px 0; border-bottom: 1px solid #333; padding-bottom: 4px; }
+        .exam-row, .absence-row { background: rgba(255,255,255,0.04); padding: 8px 10px; border-radius: 8px; margin: 4px 0; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -36,8 +38,9 @@
     <div class="container">
         <button class="scan-btn" id="scanButton" onclick="startScan()">📷 مسح QR</button>
         <div id="reader"></div>
+        <p style="text-align:center; color:#aaa; font-size:14px; margin-top:12px;">💡 يمكنك حفظ حتى 5 طلاب على هاتفك والاطلاع عليهم في أي وقت</p>
         <div class="student-list" id="studentListContainer" style="display:none;">
-            <h3>الطلاب (5 كحد أقصى)</h3>
+            <h3>الطلاب</h3>
             <div id="studentList"></div>
         </div>
     </div>
@@ -137,9 +140,39 @@
             document.getElementById('detailName').textContent = s.Name;
             document.getElementById('detailScore').innerHTML = `🏅 ${s.TotalScore}`;
             document.getElementById('detailRank').innerHTML = `📊 ترتيب المجموعة: ${s.RankGroup}<br>📈 ترتيب الصف: ${s.RankGrade}`;
-            document.getElementById('detailEval').textContent = `التقييمات: ${s.Evaluations}`;
-            document.getElementById('detailExams').textContent = `الامتحانات: ${s.Exams}`;
-            document.getElementById('detailAbsences').textContent = `الغياب: ${s.Absences}`;
+
+            let examsHtml = '<div class="section-title">🧮 الامتحانات</div>';
+            if (s.Exams && s.Exams.trim() !== 'لا يوجد' && s.Exams.trim() !== '') {
+                const lines = s.Exams.split('\n').filter(l => l.trim() !== '');
+                lines.forEach(line => {
+                    const match = line.match(/التاريخ:\s*(.*?)\s*[-–]\s*الدرجة:\s*(.*)/);
+                    if (match) {
+                        examsHtml += `<div class="exam-row">📅 ${match[1].trim()} — ${match[2].trim()}</div>`;
+                    } else {
+                        examsHtml += `<div class="exam-row">${line}</div>`;
+                    }
+                });
+            } else {
+                examsHtml += '<div class="exam-row">لا يوجد امتحانات</div>';
+            }
+            document.getElementById('detailExams').innerHTML = examsHtml;
+
+            let absencesHtml = '<div class="section-title">🕓 سجل الغياب</div>';
+            if (s.Absences && s.Absences.trim() !== 'لا يوجد' && s.Absences.trim() !== '') {
+                const lines = s.Absences.split('\n').filter(l => l.trim() !== '');
+                lines.forEach(line => {
+                    const d = line.match(/(\d{4}-\d{2}-\d{2})/);
+                    if (d) {
+                        absencesHtml += `<div class="absence-row">📌 ${d[1]}</div>`;
+                    } else {
+                        absencesHtml += `<div class="absence-row">${line}</div>`;
+                    }
+                });
+            } else {
+                absencesHtml += '<div class="absence-row">لا يوجد غياب</div>';
+            }
+            document.getElementById('detailAbsences').innerHTML = absencesHtml;
+
             document.getElementById('detailPopup').classList.add('active');
         }
 
