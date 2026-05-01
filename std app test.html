@@ -100,16 +100,47 @@
                 const resp = await fetch(SCRIPT_URL + "?format=json&id=" + id);
                 const student = await resp.json();
                 if (student.error) throw new Error(student.error);
-                document.getElementById('detailName').textContent = student.Name || "غير معروف";
-                document.getElementById('detailScore').innerHTML = `🏅 ${student["Total Score"] || '0'}`;
-                document.getElementById('detailRank').innerHTML = `📊 ترتيب المجموعة: ${student["الترتيب على المجموعة"] || '-'}<br>📈 ترتيب الصف: ${student["الترتيب على الصف"] || '-'}`;
-                document.getElementById('detailPopup').classList.add('active');
-                if (!scannedStudents.find(s => s.id === id) && scannedStudents.length < 5) {
-                    scannedStudents.push({ id: id, name: student.Name || "غير معروف", score: student["Total Score"] || "0" });
+
+                const fullStudent = {
+                    id: id,
+                    Name: student.Name || "غير معروف",
+                    TotalScore: student["Total Score"] || "0",
+                    RankGroup: student["الترتيب على المجموعة"] || "-",
+                    RankGrade: student["الترتيب على الصف"] || "-",
+                    Evaluations: student["Evaluations"] || "لا يوجد",
+                    Exams: student["Exams"] || "لا يوجد",
+                    Absences: student["Absences"] || "لا يوجد"
+                };
+
+                const existingIndex = scannedStudents.findIndex(s => s.id === id);
+                if (existingIndex === -1) {
+                    if (scannedStudents.length >= 5) {
+                        alert("القائمة ممتلئة (5 طلاب).");
+                        return;
+                    }
+                    scannedStudents.push(fullStudent);
+                    localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents));
+                    renderStudentList();
+                } else {
+                    scannedStudents[existingIndex] = fullStudent;
                     localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents));
                     renderStudentList();
                 }
-            } catch(e) { alert("فشل جلب البيانات"); }
+                showStudentPopup(fullStudent);
+
+            } catch(e) { 
+                alert("فشل جلب البيانات"); 
+            }
+        }
+
+        function showStudentPopup(s) {
+            document.getElementById('detailName').textContent = s.Name;
+            document.getElementById('detailScore').innerHTML = `🏅 ${s.TotalScore}`;
+            document.getElementById('detailRank').innerHTML = `📊 ترتيب المجموعة: ${s.RankGroup}<br>📈 ترتيب الصف: ${s.RankGrade}`;
+            document.getElementById('detailEval').textContent = `التقييمات: ${s.Evaluations}`;
+            document.getElementById('detailExams').textContent = `الامتحانات: ${s.Exams}`;
+            document.getElementById('detailAbsences').textContent = `الغياب: ${s.Absences}`;
+            document.getElementById('detailPopup').classList.add('active');
         }
 
         function renderStudentList() {
@@ -118,15 +149,30 @@
             if (scannedStudents.length > 0) {
                 c.style.display = 'block';
                 l.innerHTML = scannedStudents.map((s,i) => `
-                    <div class="student-item">
-                        <div><div class="student-name">${s.name}</div><div class="student-score">الدرجة: ${s.score}</div></div>
-                        <button class="delete-btn" onclick="removeStudent(${i})">حذف</button>
+                    <div class="student-item" onclick="showStudentFromList(${i})" style="cursor:pointer;">
+                        <div>
+                            <div class="student-name">${s.Name}</div>
+                            <div class="student-score">الدرجة: ${s.TotalScore}</div>
+                        </div>
+                        <button class="delete-btn" onclick="event.stopPropagation(); removeStudent(${i})">حذف</button>
                     </div>`).join('');
             } else { c.style.display = 'none'; }
         }
 
-        function removeStudent(i) { scannedStudents.splice(i,1); localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents)); renderStudentList(); }
-        function closeDetail() { document.getElementById('detailPopup').classList.remove('active'); }
+        function showStudentFromList(index) {
+            const s = scannedStudents[index];
+            if (s) showStudentPopup(s);
+        }
+
+        function removeStudent(i) { 
+            scannedStudents.splice(i,1); 
+            localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents)); 
+            renderStudentList(); 
+        }
+
+        function closeDetail() { 
+            document.getElementById('detailPopup').classList.remove('active'); 
+        }
     </script>
 </body>
 </html>
