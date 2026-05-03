@@ -60,14 +60,12 @@
 
     <script>
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/id/exec";
         let scannedStudents = [];
         let html5QrCode;
         const saved = localStorage.getItem('scannedStudents');
         if (saved) { scannedStudents = JSON.parse(saved); renderStudentList(); }
-        if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission();
-        }
+
         function extractId(scannedText) {
             try {
                 const url = new URL(scannedText);
@@ -114,8 +112,7 @@
                     RankGrade: student["الترتيب على الصف"] || "-",
                     Evaluations: student["Evaluations"] || "لا يوجد",
                     Exams: student["Exams"] || "لا يوجد",
-                    Absences: student["Absences"] || "لا يوجد",
-                    lastExams: student["Exams"] || ""  
+                    Absences: student["Absences"] || "لا يوجد"
                 };
 
                 const existingIndex = scannedStudents.findIndex(s => s.id === id);
@@ -125,12 +122,13 @@
                         return;
                     }
                     scannedStudents.push(fullStudent);
+                    localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents));
+                    renderStudentList();
                 } else {
                     scannedStudents[existingIndex] = fullStudent;
+                    localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents));
+                    renderStudentList();
                 }
-
-                localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents));
-                renderStudentList();
                 showStudentPopup(fullStudent);
 
             } catch(e) { 
@@ -207,36 +205,7 @@
 
         function closeDetail() { 
             document.getElementById('detailPopup').classList.remove('active'); 
-        }-
-        async function checkForNewExams() {
-            if (!('Notification' in window) || Notification.permission !== 'granted') return;
-            if (scannedStudents.length === 0) return;
-
-            for (const saved of scannedStudents) {
-                try {
-                    const resp = await fetch(SCRIPT_URL + "?format=json&id=" + saved.id);
-                    const student = await resp.json();
-                    if (student.error) continue;
-
-                    const currentExams = student["Exams"] || "";
-                    const oldExams = saved.lastExams || "";
-
-                    if (currentExams !== oldExams && currentExams !== "لا يوجد") {
-                        const newDates = currentExams.match(/التاريخ:\s*(\d{4}-\d{2}-\d{2})/g);
-                        const oldDates = oldExams.match(/التاريخ:\s*(\d{4}-\d{2}-\d{2})/g) || [];
-
-                        if (newDates) {
-                            const latestNewDate = newDates[newDates.length-1].match(/\d{4}-\d{2}-\d{2}/)[0];
-                            if (!oldDates.some(d => d.includes(latestNewDate))) {
-                                new Notification("AE Vision", {
-                                    body: `تم تسجيل نتيجة امتحان الطالب "${saved.Name}" بتاريخ ${latestNewDate}`,
-                                    icon: 'logo.png'
-                                });
-                            }
-                        }
-                        saved.lastExams = currentExams;
-                        localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents));}} catch(e) { /* فشل صامت */ }}}
-        setInterval(checkForNewExams, 300000); 
+        }
     </script>
 </body>
 </html>
