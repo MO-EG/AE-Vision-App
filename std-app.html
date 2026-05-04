@@ -141,6 +141,16 @@
             document.getElementById('detailScore').innerHTML = `🏅 ${s.TotalScore}`;
             document.getElementById('detailRank').innerHTML = `📊 ترتيب المجموعة: ${s.RankGroup}<br>📈 ترتيب الصف: ${s.RankGrade}`;
 
+            let evalHtml = '<div class="section-title">⭐ التقييمات</div>';
+            if (s.Evaluations && s.Evaluations.trim() !== 'لا يوجد' && s.Evaluations.trim() !== '') {
+                const lines = s.Evaluations.split(',').filter(l => l.trim() !== '');
+                lines.forEach(line => {
+                    evalHtml += `<div class="exam-row">${line.trim()}</div>`;
+                });
+            } else {
+                evalHtml += '<div class="exam-row">لا يوجد تقييمات</div>';}
+            document.getElementById('detailEval').innerHTML = evalHtml;
+
             let examsHtml = '<div class="section-title">🧮 الامتحانات</div>';
             if (s.Exams && s.Exams.trim() !== 'لا يوجد' && s.Exams.trim() !== '') {
                 const lines = s.Exams.split('\n').filter(l => l.trim() !== '');
