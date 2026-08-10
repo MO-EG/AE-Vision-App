@@ -4,29 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AE Vision - الطالب</title>
-    <link rel="manifest" href="manifest.json">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        :root { --bg: #0d1117; --card: #161b22; --accent: #e2b04a; --text: #e6e6e6; --header-bg: #1a1a2e; }
+        :root { --bg: #0d1117; --card: #161b22; --accent: #e2b04a; --text: #e6e6e6; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
-        .header { width: 100%; background: var(--header-bg); padding: 16px; text-align: center; border-bottom: 3px solid var(--accent); display: flex; align-items: center; justify-content: space-between; }
-        .header h1 { font-size: 24px; color: var(--accent); }
-        .logout-btn { background: #b22222; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 14px; }
+        .header { width: 100%; background: #1a1a2e; padding: 16px; text-align: center; border-bottom: 3px solid var(--accent); display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { color: var(--accent); font-size: 24px; }
+        .logout-btn { background: #b22222; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; }
         .container { width: 100%; max-width: 420px; padding: 16px; flex: 1; }
         #reader { width: 100%; border-radius: 12px; overflow: hidden; margin: 16px 0; }
         .section-card { background: var(--card); border-radius: 16px; padding: 20px; margin: 12px 0; text-align: center; cursor: pointer; border-right: 4px solid var(--accent); font-size: 20px; font-weight: bold; }
         .sub-card { background: var(--card); border-radius: 12px; padding: 16px; margin: 10px 0; text-align: center; cursor: pointer; border-right: 4px solid #4a9eff; font-size: 18px; }
         .book-card { background: var(--card); border-radius: 12px; padding: 12px; margin: 10px 0; display: flex; align-items: center; gap: 12px; position: relative; }
-        .book-card img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; }
+        .book-card img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; background: #333; }
         .book-info { flex: 1; }
         .book-title { font-size: 16px; font-weight: bold; color: var(--accent); margin-bottom: 8px; }
-        .download-btn { background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 14px; position: absolute; bottom: 12px; left: 12px; }
-        .back-btn { background: #555; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; margin: 10px 0; }
+        .download-btn { background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; }
+        .back-btn { background: #555; color: white; border: none; padding: 10px 20px; border-radius: 20px; margin: 10px 0; }
     </style>
 </head>
 <body>
-    <div id="scanPage" style="width:100%;">
+    <div id="scanPage" style="width:100%">
         <div class="header"><h1>AE Vision</h1><div></div></div>
         <div class="container">
             <div id="reader"></div>
@@ -34,11 +33,8 @@
         </div>
     </div>
 
-    <div id="mainPage" style="display:none; width:100%;">
-        <div class="header">
-            <h1>AE Vision</h1>
-            <button class="logout-btn" onclick="logout()">🚪 خروج</button>
-        </div>
+    <div id="mainPage" style="display:none; width:100%">
+        <div class="header"><h1>AE Vision</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
             <div class="section-card" onclick="showGrades('primary')">📘 ابتدائي</div>
             <div class="section-card" onclick="showGrades('prep')">📙 اعدادي</div>
@@ -46,33 +42,25 @@
         </div>
     </div>
 
-    <div id="gradePage" style="display:none; width:100%;">
-        <div class="header">
-            <h1 id="gradeTitle">الصفوف</h1>
-            <button class="logout-btn" onclick="logout()">🚪 خروج</button>
-        </div>
+    <div id="gradePage" style="display:none; width:100%">
+        <div class="header"><h1 id="gradeTitle">الصفوف</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
             <button class="back-btn" onclick="goBack('main')">← رجوع</button>
             <div id="gradesContainer"></div>
         </div>
     </div>
 
-    <div id="booksPage" style="display:none; width:100%;">
-        <div class="header">
-            <h1 id="booksTitle">الكتب</h1>
-            <button class="logout-btn" onclick="logout()">🚪 خروج</button>
-        </div>
+    <div id="booksPage" style="display:none; width:100%">
+        <div class="header"><h1 id="booksTitle">الكتب</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
             <button class="back-btn" onclick="goBack('grades')">← رجوع</button>
             <div id="booksContainer"></div>
         </div>
     </div>
-    <!--//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////-->
+
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
         let html5QrCode;
-        let currentCategory = '';
-
         const gradesMap = {
             primary: ["4 ابتدائي", "5 ابتدائي", "6 ابتدائي"],
             prep: ["1 اعدادي", "2 اعدادي", "3 اعدادي"],
@@ -80,8 +68,7 @@
         };
 
         window.onload = () => {
-            const saved = localStorage.getItem('ae_student');
-            if (saved) showMainPage();
+            if (localStorage.getItem('ae_student')) showMainPage();
             else startScan();
         };
 
@@ -107,19 +94,19 @@
             } catch(err) { alert("تعذر الوصول للكاميرا"); }
         }
 
-        function showPage(page) {
-            document.getElementById('scanPage').style.display = page === 'scan' ? 'block' : 'none';
-            document.getElementById('mainPage').style.display = page === 'main' ? 'block' : 'none';
-            document.getElementById('gradePage').style.display = page === 'grades' ? 'block' : 'none';
-            document.getElementById('booksPage').style.display = page === 'books' ? 'block' : 'none';
+        function showPage(p) {
+            document.getElementById('scanPage').style.display = p === 'scan' ? 'block' : 'none';
+            document.getElementById('mainPage').style.display = p === 'main' ? 'block' : 'none';
+            document.getElementById('gradePage').style.display = p === 'grades' ? 'block' : 'none';
+            document.getElementById('booksPage').style.display = p === 'books' ? 'block' : 'none';
         }
 
         function showMainPage() { showPage('main'); }
-        
+
         function showGrades(category) {
-            currentCategory = category;
-            document.getElementById('gradeTitle').textContent = category === 'primary' ? 'ابتدائي' : category === 'prep' ? 'اعدادي' : 'ثانوي';
-            document.getElementById('gradesContainer').innerHTML = gradesMap[category].map(g => 
+            const titles = { primary: 'ابتدائي', prep: 'اعدادي', secondary: 'ثانوي' };
+            document.getElementById('gradeTitle').textContent = titles[category];
+            document.getElementById('gradesContainer').innerHTML = gradesMap[category].map(g =>
                 `<div class="sub-card" onclick="showBooks('${category}', '${g}')">${g}</div>`
             ).join('');
             showPage('grades');
@@ -129,18 +116,24 @@
             document.getElementById('booksTitle').textContent = grade;
             const resp = await fetch(SCRIPT_URL + `?action=getBooks&category=${category}&grade=${encodeURIComponent(grade)}`);
             const books = await resp.json();
-            document.getElementById('booksContainer').innerHTML = books.map(b => `
-                <div class="book-card">
-                    <img src="${b.image}" onerror="this.src='logo.png'">
-                    <div class="book-info"><div class="book-title">${b.name}</div></div>
-                    <button class="download-btn" onclick="window.open('${b.link}')">⬇️ تحميل</button>
-                </div>
-            `).join('');
+            const container = document.getElementById('booksContainer');
+            if (books.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#aaa;">لا توجد كتب لهذا الصف</p>';
+            } else {
+                container.innerHTML = books.map(b => {
+                    const imgSrc = b.image || 'logo.png';
+                    return `
+                    <div class="book-card">
+                        <img src="${imgSrc}" onerror="this.src='logo.png'" alt="صورة الكتاب">
+                        <div class="book-info"><div class="book-title">${b.name}</div></div>
+                        <a href="${b.link}" target="_blank"><button class="download-btn">⬇️ تحميل</button></a>
+                    </div>`;
+                }).join('');
+            }
             showPage('books');
         }
 
-        function goBack(to) { showPage(to); }
-
+        function goBack(page) { showPage(page); }
         function logout() {
             localStorage.removeItem('ae_student');
             showPage('scan');
