@@ -4,27 +4,286 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AE Vision - الطالب</title>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://unpkg.com/html5-qrcode">
+    </script>
     <style>
-        :root { --bg: #0d1117; --card: #161b22; --accent: #e2b04a; --text: #e6e6e6; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
-        .header { width: 100%; background: #1a1a2e; padding: 16px; text-align: center; border-bottom: 3px solid var(--accent); display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { color: var(--accent); font-size: 24px; }
-        .logout-btn { background: #b22222; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; }
-        .container { width: 100%; max-width: 420px; padding: 16px; flex: 1; }
-        #reader { width: 100%; border-radius: 12px; overflow: hidden; margin: 16px 0; }
-        .section-card { background: var(--card); border-radius: 16px; padding: 20px; margin: 12px 0; text-align: center; cursor: pointer; border-right: 4px solid var(--accent); font-size: 20px; font-weight: bold; }
-        .sub-card { background: var(--card); border-radius: 12px; padding: 16px; margin: 10px 0; text-align: center; cursor: pointer; border-right: 4px solid #4a9eff; font-size: 18px; }
-        .book-card { background: var(--card); border-radius: 12px; padding: 12px; margin: 10px 0; display: flex; align-items: center; gap: 12px; position: relative; }
-        .book-card img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; background: #333; }
-        .book-info { flex: 1; }
-        .book-title { font-size: 16px; font-weight: bold; color: var(--accent); margin-bottom: 8px; }
-        .download-btn { background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; }
-        .back-btn { background: #555; color: white; border: none; padding: 10px 20px; border-radius: 20px; margin: 10px 0; }
+        :root {
+            --bg: #0d1117;
+            --card: #161b22;
+            --accent: #e2b04a;
+            --text: #e6e6e6;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            width: 100%;
+            background: #1a1a2e;
+            padding: 16px;
+            text-align: center;
+            border-bottom: 3px solid var(--accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            color: var(--accent);
+            font-size: 24px;
+        }
+        .logout-btn {
+            background: #b22222;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .logout-btn:hover {
+            background: #8b1a1a;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding: 16px;
+            flex: 1;
+        }
+
+        #reader {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .section-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 12px 0;
+            text-align: center;
+            cursor: pointer;
+            border-right: 4px solid var(--accent);
+            font-size: 20px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .section-card:hover {
+            background: #1e2530;
+            transform: translateX(-4px);
+        }
+
+        .sub-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 10px 0;
+            text-align: center;
+            cursor: pointer;
+            border-right: 4px solid #4a9eff;
+            font-size: 18px;
+            transition: 0.2s;
+        }
+        .sub-card:hover {
+            background: #1e2530;
+            transform: translateX(-4px);
+        }
+
+        .book-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 12px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            transition: 0.2s;
+        }
+        .book-card:hover {
+            background: #1e2530;
+        }
+        .book-card img {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #333;
+            flex-shrink: 0;
+        }
+        .book-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .book-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 8px;
+            word-wrap: break-word;
+        }
+
+        .download-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            white-space: nowrap;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .download-btn:hover {
+            background: #218838;
+            transform: scale(1.05);
+        }
+        .download-btn:active {
+            transform: scale(0.95);
+        }
+        .download-btn.loading-state {
+            background: #6c757d;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .back-btn {
+            background: #555;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            margin: 10px 0;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .back-btn:hover {
+            background: #666;
+        }
+
+        /* Loading Spinner */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            gap: 16px;
+        }
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid rgba(226, 176, 74, 0.2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .loading-text {
+            color: #aaa;
+            font-size: 16px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* Fade-in animation */
+        .fade-in {
+            animation: fadeIn 0.35s ease-out;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            font-family: 'Tajawal', sans-serif;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast.success {
+            background: #28a745;
+        }
+        .toast.error {
+            background: #b22222;
+        }
+
+        @media (max-width: 400px) {
+            .book-card {
+                flex-wrap: wrap;
+            }
+            .book-card img {
+                width: 60px;
+                height: 60px;
+            }
+            .download-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ============ صفحة المسح ============ -->
     <div id="scanPage" style="width:100%">
         <div class="header"><h1>AE Vision</h1><div></div></div>
         <div class="container">
@@ -33,15 +292,17 @@
         </div>
     </div>
 
+    <!-- ============ الصفحة الرئيسية ============ -->
     <div id="mainPage" style="display:none; width:100%">
         <div class="header"><h1>AE Vision</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
-            <div class="section-card" onclick="showGrades('primary')">📘 ابتدائي</div>
-            <div class="section-card" onclick="showGrades('prep')">📙 اعدادي</div>
-            <div class="section-card" onclick="showGrades('secondary')">📕 ثانوي</div>
+            <div class="section-card fade-in" onclick="showGrades('primary')">📘 ابتدائي</div>
+            <div class="section-card fade-in" onclick="showGrades('prep')">📙 اعدادي</div>
+            <div class="section-card fade-in" onclick="showGrades('secondary')">📕 ثانوي</div>
         </div>
     </div>
 
+    <!-- ============ صفحة الصفوف ============ -->
     <div id="gradePage" style="display:none; width:100%">
         <div class="header"><h1 id="gradeTitle">الصفوف</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -50,6 +311,7 @@
         </div>
     </div>
 
+    <!-- ============ صفحة الكتب ============ -->
     <div id="booksPage" style="display:none; width:100%">
         <div class="header"><h1 id="booksTitle">الكتب</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -59,41 +321,19 @@
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
+        const SCRIPT_URL =
+            "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
         let html5QrCode;
+        let currentCategory = null; // لتتبع القسم الحالي للرجوع الصحيح
+        const booksCache = {}; // تخزين مؤقت للكتب: { "primary_4 ابتدائي": [...books] }
+
         const gradesMap = {
             primary: ["4 ابتدائي", "5 ابتدائي", "6 ابتدائي"],
             prep: ["1 اعدادي", "2 اعدادي", "3 اعدادي"],
             secondary: ["1 ثانوي", "2 ثانوي", "3 ثانوي"]
         };
 
-        window.onload = () => {
-            if (localStorage.getItem('ae_student')) showMainPage();
-            else startScan();
-        };
-
-        async function startScan() {
-            showPage('scan');
-            if (html5QrCode) { try { html5QrCode.stop(); } catch(e) {} }
-            html5QrCode = new Html5Qrcode("reader");
-            try {
-                await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
-                    async (code) => {
-                        html5QrCode.stop();
-                        const id = code.trim();
-                        const resp = await fetch(SCRIPT_URL + "?action=verify&id=" + id);
-                        const data = await resp.json();
-                        if (data.exists) {
-                            localStorage.setItem('ae_student', id);
-                            showMainPage();
-                        } else {
-                            alert("❌ الطالب غير موجود");
-                            startScan();
-                        }
-                    }, () => {});
-            } catch(err) { alert("تعذر الوصول للكاميرا"); }
-        }
-
+        // ==================== دوال العرض والتنقل ====================
         function showPage(p) {
             document.getElementById('scanPage').style.display = p === 'scan' ? 'block' : 'none';
             document.getElementById('mainPage').style.display = p === 'main' ? 'block' : 'none';
@@ -101,41 +341,247 @@
             document.getElementById('booksPage').style.display = p === 'books' ? 'block' : 'none';
         }
 
-        function showMainPage() { showPage('main'); }
+        function showMainPage() {
+            showPage('main');
+            currentCategory = null;
+        }
 
         function showGrades(category) {
+            currentCategory = category;
             const titles = { primary: 'ابتدائي', prep: 'اعدادي', secondary: 'ثانوي' };
             document.getElementById('gradeTitle').textContent = titles[category];
-            document.getElementById('gradesContainer').innerHTML = gradesMap[category].map(g =>
-                `<div class="sub-card" onclick="showBooks('${category}', '${g}')">${g}</div>`
+            document.getElementById('gradesContainer').innerHTML = gradesMap[category].map((g, i) =>
+                `<div class="sub-card fade-in" style="animation-delay:${i*0.05}s" onclick="showBooks('${category}', '${g.replace(/'/g, "\\'")}')">${g}</div>`
             ).join('');
             showPage('grades');
         }
 
         async function showBooks(category, grade) {
             document.getElementById('booksTitle').textContent = grade;
-            const resp = await fetch(SCRIPT_URL + `?action=getBooks&category=${category}&grade=${encodeURIComponent(grade)}`);
-            const books = await resp.json();
             const container = document.getElementById('booksContainer');
-            if (books.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#aaa;">لا توجد كتب لهذا الصف</p>';
-            } else {
-                container.innerHTML = books.map(b => {
-                    const imgSrc = b.image || 'logo.png';
-                    return `
-                    <div class="book-card">
-                        <img src="${imgSrc}" onerror="this.src='logo.png'" alt="صورة الكتاب">
-                        <div class="book-info"><div class="book-title">${b.name}</div></div>
-                        <a href="${b.link}" target="_blank"><button class="download-btn">⬇️ تحميل</button></a>
-                    </div>`;
-                }).join('');
-            }
+
+            // إظهار الـ loading فوراً
+            container.innerHTML = `
+                <div class="loading-container fade-in">
+                    <div class="spinner"></div>
+                    <div class="loading-text">⏳ جاري تحميل الكتب...</div>
+                </div>`;
             showPage('books');
+
+            const cacheKey = `${category}_${grade}`;
+
+            // التحقق من وجود البيانات في الكاش
+            if (booksCache[cacheKey]) {
+                // استخدام البيانات المخزنة مؤقتاً
+                renderBooks(booksCache[cacheKey], container);
+                return;
+            }
+
+            try {
+                const resp = await fetch(
+                    SCRIPT_URL +
+                    `?action=getBooks&category=${category}&grade=${encodeURIComponent(grade)}`
+                );
+                const books = await resp.json();
+
+                // تخزين في الكاش
+                booksCache[cacheKey] = books;
+                renderBooks(books, container);
+            } catch (err) {
+                console.error("خطأ في جلب الكتب:", err);
+                container.innerHTML = `
+                    <div class="loading-container fade-in">
+                        <div style="font-size:32px;">⚠️</div>
+                        <div class="loading-text" style="color:#e74c3c;">تعذر تحميل الكتب. حاول مرة أخرى.</div>
+                        <button class="back-btn" onclick="goBack('grades')">← رجوع</button>
+                    </div>`;
+            }
         }
 
-        function goBack(page) { showPage(page); }
+        function renderBooks(books, container) {
+            if (!books || books.length === 0) {
+                container.innerHTML =
+                    '<div class="loading-container fade-in"><div style="font-size:40px;">📭</div><p style="color:#aaa;">لا توجد كتب لهذا الصف</p></div>';
+                return;
+            }
+            container.innerHTML = books.map((b, i) => {
+                const imgSrc = b.image || 'logo.png';
+                const bookName = b.name || 'كتاب بدون اسم';
+                const bookLink = b.link || '';
+                // استخدام data-link لتخزين الرابط وتجنب مشاكل escaping
+                return `
+                    <div class="book-card fade-in" style="animation-delay:${i*0.04}s">
+                        <img src="${imgSrc}" onerror="this.src='logo.png'" alt="صورة الكتاب" loading="lazy">
+                        <div class="book-info">
+                            <div class="book-title">${bookName}</div>
+                        </div>
+                        <button class="download-btn" onclick="downloadBook(event, '${bookLink.replace(/'/g, "\\'")}', '${bookName.replace(/'/g, "\\'")}')">
+                            ⬇️ تحميل
+                        </button>
+                    </div>`;
+            }).join('');
+        }
+
+        function goBack(page) {
+            if (page === 'main') {
+                showMainPage();
+            } else if (page === 'grades') {
+                if (currentCategory) {
+                    // إعادة عرض صفحة الصفوف مع الاحتفاظ بـ currentCategory
+                    const titles = { primary: 'ابتدائي', prep: 'اعدادي', secondary: 'ثانوي' };
+                    document.getElementById('gradeTitle').textContent = titles[currentCategory];
+                    document.getElementById('gradesContainer').innerHTML = gradesMap[currentCategory].map((g, i) =>
+                        `<div class="sub-card fade-in" style="animation-delay:${i*0.05}s" onclick="showBooks('${currentCategory}', '${g.replace(/'/g, "\\'")}')">${g}</div>`
+                    ).join('');
+                    showPage('grades');
+                } else {
+                    showMainPage();
+                }
+            }
+        }
+
+        // ==================== Toast Notification ====================
+        function showToast(message, type = '') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type + ' show';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // ==================== تحميل مباشر للكتب ====================
+        function getGoogleDriveDirectLink(url) {
+            // تحويل روابط Google Drive إلى روابط تحميل مباشر
+            const patterns = [
+                /drive\.google\.com\/file\/d\/([^\/]+)\/view/,
+                /drive\.google\.com\/open\?id=([^&]+)/,
+                /drive\.google\.com\/uc\?.*id=([^&]+)/,
+                /id=([^&]+)/,
+                /\/d\/([^\/]+)/
+            ];
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match && match[1]) {
+                    return `https://drive.google.com/uc?export=download&id=${match[1]}`;
+                }
+            }
+            return url; // إرجاع الرابط الأصلي إذا لم يكن Google Drive
+        }
+
+        async function downloadBook(event, link, bookName) {
+            const btn = event.currentTarget;
+            const originalHTML = btn.innerHTML;
+
+            // تعطيل الزر وإظهار حالة التحميل
+            btn.classList.add('loading-state');
+            btn.innerHTML = '⏳ جاري التحميل...';
+            btn.disabled = true;
+
+            try {
+                const directLink = getGoogleDriveDirectLink(link);
+
+                // محاولة التحميل المباشر عبر fetch + blob
+                try {
+                    const response = await fetch(directLink, {
+                        mode: 'cors',
+                        signal: AbortSignal.timeout(15000) // 15 ثانية timeout
+                    });
+
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const blobUrl = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = blobUrl;
+                        // التأكد من أن الامتداد .pdf
+                        const fileName = bookName.endsWith('.pdf') ? bookName : bookName + '.pdf';
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(blobUrl);
+                        showToast('✅ تم بدء التحميل!', 'success');
+                    } else {
+                        throw new Error('Fetch failed with status: ' + response.status);
+                    }
+                } catch (fetchError) {
+                    // فشل الـ fetch (غالباً CORS)، فتح الرابط مباشرة
+                    console.warn('تعذر التحميل المباشر، فتح الرابط:', fetchError.message);
+                    const a = document.createElement('a');
+                    a.href = link;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    // محاولة إجبار التحميل عبر download attribute
+                    const fileName = bookName.endsWith('.pdf') ? bookName : bookName + '.pdf';
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    showToast('📥 تم فتح الرابط للتحميل', 'success');
+                }
+            } catch (err) {
+                console.error('خطأ في التحميل:', err);
+                showToast('❌ فشل التحميل. حاول مرة أخرى.', 'error');
+                // فتح الرابط كحل أخير
+                window.open(link, '_blank');
+            } finally {
+                // استعادة حالة الزر
+                btn.classList.remove('loading-state');
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        // ==================== QR Code Scanner ====================
+        window.onload = () => {
+            if (localStorage.getItem('ae_student')) {
+                showMainPage();
+            } else {
+                startScan();
+            }
+        };
+
+        async function startScan() {
+            showPage('scan');
+            if (html5QrCode) {
+                try { html5QrCode.stop(); } catch (e) {}
+            }
+            html5QrCode = new Html5Qrcode("reader");
+            try {
+                await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250,
+                        height: 250 } },
+                    async (code) => {
+                        html5QrCode.stop();
+                        const id = code.trim();
+                        try {
+                            const resp = await fetch(SCRIPT_URL + "?action=verify&id=" + id);
+                            const data = await resp.json();
+                            if (data.exists) {
+                                localStorage.setItem('ae_student', id);
+                                showToast('✅ تم التحقق بنجاح!', 'success');
+                                showMainPage();
+                            } else {
+                                showToast('❌ الطالب غير موجود', 'error');
+                                setTimeout(() => startScan(), 1500);
+                            }
+                        } catch (err) {
+                            showToast('❌ خطأ في الاتصال', 'error');
+                            setTimeout(() => startScan(), 1500);
+                        }
+                    }, () => {});
+            } catch (err) {
+                console.error(err);
+                showToast('تعذر الوصول للكاميرا', 'error');
+            }
+        }
+
         function logout() {
             localStorage.removeItem('ae_student');
+            // مسح الكاش عند الخروج
+            for (const key in booksCache) {
+                delete booksCache[key];
+            }
             showPage('scan');
             startScan();
         }
