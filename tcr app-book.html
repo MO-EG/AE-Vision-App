@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AE Vision - الإدارة</title>
+    <title>AE Vision - Admin</title>
     <style>
         :root { --bg: #0d1117; --card: #161b22; --accent: #e2b04a; --text: #e6e6e6; --header-bg: #1a1a2e; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -30,20 +30,18 @@
     </style>
 </head>
 <body>
-    <!-- صفحة الدخول -->
+    
     <div id="loginPage" style="width:100%;">
         <div class="header"><h1>🔐 تسجيل الدخول</h1></div>
         <div class="container">
             <div class="login-box">
                 <h2>مرحباً بك</h2>
-                <input type="text" id="username" placeholder="اسم المستخدم">
-                <input type="password" id="password" placeholder="كلمة المرور">
+                <input type="text" id="username" placeholder="3tef">
+                <input type="password" id="password" placeholder="241988">
                 <button class="btn btn-primary" style="width:100%; margin-top:16px;" onclick="login()">دخول</button>
             </div>
         </div>
     </div>
-
-    <!-- لوحة التحكم -->
     <div id="adminPage" style="display:none; width:100%;">
         <div class="header">
             <button class="btn btn-primary" onclick="openModal()">➕ إنشاء جديد</button>
@@ -52,8 +50,7 @@
         </div>
         <div class="container" id="booksList"></div>
     </div>
-
-    <!-- نافذة الإضافة/التعديل -->
+    
     <div class="modal" id="bookModal">
         <div class="modal-content">
             <h2 id="modalTitle">📘 إضافة كتاب جديد</h2>
