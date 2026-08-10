@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AE Vision - الطالب</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        :root { --bg: #0d1117; --card: #161b22; --accent: #e2b04a; --text: #e6e6e6; --header-bg: #1a1a2e; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        .header { width: 100%; background: var(--header-bg); padding: 16px; text-align: center; border-bottom: 3px solid var(--accent); display: flex; align-items: center; justify-content: space-between; }
+        .header h1 { font-size: 24px; color: var(--accent); }
+        .logout-btn { background: #b22222; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 14px; }
+        .container { width: 100%; max-width: 420px; padding: 16px; flex: 1; }
+        #reader { width: 100%; border-radius: 12px; overflow: hidden; margin: 16px 0; }
+        .section-card { background: var(--card); border-radius: 16px; padding: 20px; margin: 12px 0; text-align: center; cursor: pointer; border-right: 4px solid var(--accent); font-size: 20px; font-weight: bold; }
+        .sub-card { background: var(--card); border-radius: 12px; padding: 16px; margin: 10px 0; text-align: center; cursor: pointer; border-right: 4px solid #4a9eff; font-size: 18px; }
+        .book-card { background: var(--card); border-radius: 12px; padding: 12px; margin: 10px 0; display: flex; align-items: center; gap: 12px; position: relative; }
+        .book-card img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; }
+        .book-info { flex: 1; }
+        .book-title { font-size: 16px; font-weight: bold; color: var(--accent); margin-bottom: 8px; }
+        .download-btn { background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 14px; position: absolute; bottom: 12px; left: 12px; }
+        .back-btn { background: #555; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <!-- واجهة الباركود -->
+    <div id="scanPage" style="width:100%;">
+        <div class="header"><h1>AE Vision</h1><div></div></div>
+        <div class="container">
+            <div id="reader"></div>
+            <p style="text-align:center; color:#aaa;">📷 وجه الكاميرا نحو الباركود</p>
+        </div>
+    </div>
+
+    <!-- واجهة التصنيفات -->
+    <div id="mainPage" style="display:none; width:100%;">
+        <div class="header">
+            <h1>AE Vision</h1>
+            <button class="logout-btn" onclick="logout()">🚪 خروج</button>
+        </div>
+        <div class="container">
+            <div class="section-card" onclick="showGrades('primary')">📘 ابتدائي</div>
+            <div class="section-card" onclick="showGrades('prep')">📙 اعدادي</div>
+            <div class="section-card" onclick="showGrades('secondary')">📕 ثانوي</div>
+        </div>
+    </div>
+
+    <!-- واجهة الصفوف -->
+    <div id="gradePage" style="display:none; width:100%;">
+        <div class="header">
+            <h1 id="gradeTitle">الصفوف</h1>
+            <button class="logout-btn" onclick="logout()">🚪 خروج</button>
+        </div>
+        <div class="container">
+            <button class="back-btn" onclick="goBack('main')">← رجوع</button>
+            <div id="gradesContainer"></div>
+        </div>
+    </div>
+
+    <!-- واجهة الكتب -->
+    <div id="booksPage" style="display:none; width:100%;">
+        <div class="header">
+            <h1 id="booksTitle">الكتب</h1>
+            <button class="logout-btn" onclick="logout()">🚪 خروج</button>
+        </div>
+        <div class="container">
+            <button class="back-btn" onclick="goBack('grades')">← رجوع</button>
+            <div id="booksContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+        let html5QrCode;
+        let currentCategory = '';
+
+        const gradesMap = {
+            primary: ["4 ابتدائي", "5 ابتدائي", "6 ابتدائي"],
+            prep: ["1 اعدادي", "2 اعدادي", "3 اعدادي"],
+            secondary: ["1 ثانوي", "2 ثانوي", "3 ثانوي"]
+        };
+
+        window.onload = () => {
+            const saved = localStorage.getItem('ae_student');
+            if (saved) showMainPage();
+            else startScan();
+        };
+
+        // =============== الباركود ===============
+        async function startScan() {
+            showPage('scan');
+            if (html5QrCode) { try { html5QrCode.stop(); } catch(e) {} }
+            html5QrCode = new Html5Qrcode("reader");
+            try {
+                await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
+                    async (code) => {
+                        html5QrCode.stop();
+                        const id = code.trim();
+                        const resp = await fetch(SCRIPT_URL + "?action=verify&id=" + id);
+                        const data = await resp.json();
+                        if (data.exists) {
+                            localStorage.setItem('ae_student', id);
+                            showMainPage();
+                        } else {
+                            alert("❌ الطالب غير موجود");
+                            startScan();
+                        }
+                    }, () => {});
+            } catch(err) { alert("تعذر الوصول للكاميرا"); }
+        }
+
+        // =============== التنقل ===============
+        function showPage(page) {
+            document.getElementById('scanPage').style.display = page === 'scan' ? 'block' : 'none';
+            document.getElementById('mainPage').style.display = page === 'main' ? 'block' : 'none';
+            document.getElementById('gradePage').style.display = page === 'grades' ? 'block' : 'none';
+            document.getElementById('booksPage').style.display = page === 'books' ? 'block' : 'none';
+        }
+
+        function showMainPage() { showPage('main'); }
+        
+        function showGrades(category) {
+            currentCategory = category;
+            document.getElementById('gradeTitle').textContent = category === 'primary' ? 'ابتدائي' : category === 'prep' ? 'اعدادي' : 'ثانوي';
+            document.getElementById('gradesContainer').innerHTML = gradesMap[category].map(g => 
+                `<div class="sub-card" onclick="showBooks('${category}', '${g}')">${g}</div>`
+            ).join('');
+            showPage('grades');
+        }
+
+        async function showBooks(category, grade) {
+            document.getElementById('booksTitle').textContent = grade;
+            const resp = await fetch(SCRIPT_URL + `?action=getBooks&category=${category}&grade=${encodeURIComponent(grade)}`);
+            const books = await resp.json();
+            document.getElementById('booksContainer').innerHTML = books.map(b => `
+                <div class="book-card">
+                    <img src="${b.image}" onerror="this.src='logo.png'">
+                    <div class="book-info"><div class="book-title">${b.name}</div></div>
+                    <button class="download-btn" onclick="window.open('${b.link}')">⬇️ تحميل</button>
+                </div>
+            `).join('');
+            showPage('books');
+        }
+
+        function goBack(to) { showPage(to); }
+
+        function logout() {
+            localStorage.removeItem('ae_student');
+            showPage('scan');
+            startScan();
+        }
+    </script>
+</body>
+</html>
