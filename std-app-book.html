@@ -184,6 +184,7 @@
             background: #666;
         }
 
+        /* Loading Spinner */
         .loading-container {
             display: flex;
             flex-direction: column;
@@ -220,6 +221,7 @@
             }
         }
 
+        /* Fade-in animation */
         .fade-in {
             animation: fadeIn 0.35s ease-out;
         }
@@ -278,6 +280,7 @@
 </head>
 <body>
 
+
     <div class="toast" id="toast"></div>
 
 
@@ -321,8 +324,8 @@
         const SCRIPT_URL =
             "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
         let html5QrCode;
-        let currentCategory = null;
-        const booksCache = {};
+        let currentCategory = null; 
+        const booksCache = {}; 
 
         const gradesMap = {
             primary: ["4 ابتدائي", "5 ابتدائي", "6 ابتدائي"],
@@ -366,7 +369,9 @@
 
             const cacheKey = `${category}_${grade}`;
 
+            
             if (booksCache[cacheKey]) {
+
                 renderBooks(booksCache[cacheKey], container);
                 return;
             }
@@ -377,6 +382,7 @@
                     `?action=getBooks&category=${category}&grade=${encodeURIComponent(grade)}`
                 );
                 const books = await resp.json();
+
                 booksCache[cacheKey] = books;
                 renderBooks(books, container);
             } catch (err) {
@@ -400,6 +406,7 @@
                 const imgSrc = b.image || 'logo.png';
                 const bookName = b.name || 'كتاب بدون اسم';
                 const bookLink = b.link || '';
+
                 return `
                     <div class="book-card fade-in" style="animation-delay:${i*0.04}s">
                         <img src="${imgSrc}" onerror="this.src='logo.png'" alt="صورة الكتاب" loading="lazy">
@@ -418,6 +425,7 @@
                 showMainPage();
             } else if (page === 'grades') {
                 if (currentCategory) {
+
                     const titles = { primary: 'ابتدائي', prep: 'اعدادي', secondary: 'ثانوي' };
                     document.getElementById('gradeTitle').textContent = titles[currentCategory];
                     document.getElementById('gradesContainer').innerHTML = gradesMap[currentCategory].map((g, i) =>
@@ -440,7 +448,9 @@
             }, 3000);
         }
 
+
         function getGoogleDriveDirectLink(url) {
+            
             const patterns = [
                 /drive\.google\.com\/file\/d\/([^\/]+)\/view/,
                 /drive\.google\.com\/open\?id=([^&]+)/,
@@ -454,42 +464,66 @@
                     return `https://drive.google.com/uc?export=download&id=${match[1]}`;
                 }
             }
-            return null; 
+            return url; 
         }
 
         async function downloadBook(event, link, bookName) {
             const btn = event.currentTarget;
             const originalHTML = btn.innerHTML;
+
+            // تعطيل الزر وإظهار حالة التحميل
             btn.classList.add('loading-state');
             btn.innerHTML = '⏳ جاري التحميل...';
             btn.disabled = true;
 
             try {
-                const googleDirect = getGoogleDriveDirectLink(link);
-                if (googleDirect) {
+                const directLink = getGoogleDriveDirectLink(link);
 
-                    window.open(googleDirect, '_blank');
-                    showToast('✅ تم فتح رابط التحميل', 'success');
-                } else {
 
-                    const proxyUrl = SCRIPT_URL +
-                        `?action=downloadFile&url=${encodeURIComponent(link)}&name=${encodeURIComponent(bookName.endsWith('.pdf') ? bookName : bookName + '.pdf')}`;
+                try {
+                    const response = await fetch(directLink, {
+                        mode: 'cors',
+                        signal: AbortSignal.timeout(15000) 
+                    });
 
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = proxyUrl;
-                    document.body.appendChild(iframe);
-                
-                    setTimeout(() => {
-                        document.body.removeChild(iframe);
-                    }, 5000);
-                    showToast('📥 جاري بدء التحميل...', 'success');
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const blobUrl = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = blobUrl;
+   
+                        const fileName = bookName.endsWith('.pdf') ? bookName : bookName + '.pdf';
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(blobUrl);
+                        showToast('✅ تم بدء التحميل!', 'success');
+                    } else {
+                        throw new Error('Fetch failed with status: ' + response.status);
+                    }
+                } catch (fetchError) {
+
+                    console.warn('تعذر التحميل المباشر، فتح الرابط:', fetchError.message);
+                    const a = document.createElement('a');
+                    a.href = link;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+
+                    const fileName = bookName.endsWith('.pdf') ? bookName : bookName + '.pdf';
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    showToast('📥 تم فتح الرابط للتحميل', 'success');
                 }
             } catch (err) {
                 console.error('خطأ في التحميل:', err);
                 showToast('❌ فشل التحميل. حاول مرة أخرى.', 'error');
+              
                 window.open(link, '_blank');
             } finally {
+            
                 btn.classList.remove('loading-state');
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
@@ -512,7 +546,8 @@
             }
             html5QrCode = new Html5Qrcode("reader");
             try {
-                await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
+                await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250,
+                        height: 250 } },
                     async (code) => {
                         html5QrCode.stop();
                         const id = code.trim();
@@ -540,6 +575,7 @@
 
         function logout() {
             localStorage.removeItem('ae_student');
+         
             for (const key in booksCache) {
                 delete booksCache[key];
             }
