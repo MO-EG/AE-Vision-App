@@ -162,11 +162,6 @@
         .download-btn:active {
             transform: scale(0.95);
         }
-        .download-btn.loading-state {
-            background: #6c757d;
-            pointer-events: none;
-            opacity: 0.7;
-        }
 
         .back-btn {
             background: #555;
@@ -221,7 +216,7 @@
             }
         }
 
-
+        /* Fade-in animation */
         .fade-in {
             animation: fadeIn 0.35s ease-out;
         }
@@ -280,10 +275,10 @@
 </head>
 <body>
 
-  
+
     <div class="toast" id="toast"></div>
 
-  
+
     <div id="scanPage" style="width:100%">
         <div class="header"><h1>AE Vision</h1><div></div></div>
         <div class="container">
@@ -302,7 +297,7 @@
         </div>
     </div>
 
-  
+
     <div id="gradePage" style="display:none; width:100%">
         <div class="header"><h1 id="gradeTitle">الصفوف</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -311,7 +306,7 @@
         </div>
     </div>
 
-  
+
     <div id="booksPage" style="display:none; width:100%">
         <div class="header"><h1 id="booksTitle">الكتب</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -324,8 +319,8 @@
         const SCRIPT_URL =
             "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
         let html5QrCode;
-        let currentCategory = null; 
-        const booksCache = {}; 
+        let currentCategory = null;
+        const booksCache = {};
 
         const gradesMap = {
             primary: ["4 ابتدائي", "5 ابتدائي", "6 ابتدائي"],
@@ -333,7 +328,7 @@
             secondary: ["1 ثانوي", "2 ثانوي", "3 ثانوي"]
         };
 
-       
+     
         function showPage(p) {
             document.getElementById('scanPage').style.display = p === 'scan' ? 'block' : 'none';
             document.getElementById('mainPage').style.display = p === 'main' ? 'block' : 'none';
@@ -360,7 +355,7 @@
             document.getElementById('booksTitle').textContent = grade;
             const container = document.getElementById('booksContainer');
 
-          
+            // إظهار الـ loading فوراً
             container.innerHTML = `
                 <div class="loading-container fade-in">
                     <div class="spinner"></div>
@@ -370,9 +365,7 @@
 
             const cacheKey = `${category}_${grade}`;
 
-       
             if (booksCache[cacheKey]) {
-            
                 renderBooks(booksCache[cacheKey], container);
                 return;
             }
@@ -383,8 +376,6 @@
                     `?action=getBooks&category=${category}&grade=${encodeURIComponent(grade)}`
                 );
                 const books = await resp.json();
-
-            
                 booksCache[cacheKey] = books;
                 renderBooks(books, container);
             } catch (err) {
@@ -408,7 +399,6 @@
                 const imgSrc = b.image || 'logo.png';
                 const bookName = b.name || 'كتاب بدون اسم';
                 const bookLink = b.link || '';
-
                 return `
                     <div class="book-card fade-in" style="animation-delay:${i*0.04}s">
                         <img src="${imgSrc}" onerror="this.src='logo.png'" alt="صورة الكتاب" loading="lazy">
@@ -427,7 +417,6 @@
                 showMainPage();
             } else if (page === 'grades') {
                 if (currentCategory) {
-
                     const titles = { primary: 'ابتدائي', prep: 'اعدادي', secondary: 'ثانوي' };
                     document.getElementById('gradeTitle').textContent = titles[currentCategory];
                     document.getElementById('gradesContainer').innerHTML = gradesMap[currentCategory].map((g, i) =>
@@ -440,7 +429,7 @@
             }
         }
 
-
+     
         function showToast(message, type = '') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -451,89 +440,14 @@
             }, 3000);
         }
 
-
-        function getGoogleDriveDirectLink(url) {
-         
-            const patterns = [
-                /drive\.google\.com\/file\/d\/([^\/]+)\/view/,
-                /drive\.google\.com\/open\?id=([^&]+)/,
-                /drive\.google\.com\/uc\?.*id=([^&]+)/,
-                /id=([^&]+)/,
-                /\/d\/([^\/]+)/
-            ];
-            for (const pattern of patterns) {
-                const match = url.match(pattern);
-                if (match && match[1]) {
-                    return `https://drive.google.com/uc?export=download&id=${match[1]}`;
-                }
-            }
-            return url; 
-        }
-
-        async function downloadBook(event, link, bookName) {
-            const btn = event.currentTarget;
-            const originalHTML = btn.innerHTML;
-
-           
-            btn.classList.add('loading-state');
-            btn.innerHTML = '⏳ جاري التحميل...';
-            btn.disabled = true;
-
-            try {
-                const directLink = getGoogleDriveDirectLink(link);
-
-              
-                try {
-                    const response = await fetch(directLink, {
-                        mode: 'cors',
-                        signal: AbortSignal.timeout(15000) 
-                    });
-
-                    if (response.ok) {
-                        const blob = await response.blob();
-                        const blobUrl = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = blobUrl;
-                        // التأكد من أن الامتداد .pdf
-                        const fileName = bookName.endsWith('.pdf') ? bookName : bookName + '.pdf';
-                        a.download = fileName;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        window.URL.revokeObjectURL(blobUrl);
-                        showToast('✅ تم بدء التحميل!', 'success');
-                    } else {
-                        throw new Error('Fetch failed with status: ' + response.status);
-                    }
-                } catch (fetchError) {
-                  
-                    console.warn('تعذر التحميل المباشر، فتح الرابط:', fetchError.message);
-                    const a = document.createElement('a');
-                    a.href = link;
-                    a.target = '_blank';
-                    a.rel = 'noopener noreferrer';
-              
-                    const fileName = bookName.endsWith('.pdf') ? bookName : bookName + '.pdf';
-                    a.download = fileName;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    showToast('📥 تم فتح الرابط للتحميل', 'success');
-                }
-            } catch (err) {
-                console.error('خطأ في التحميل:', err);
-                showToast('❌ فشل التحميل. حاول مرة أخرى.', 'error');
-               
-                window.open(link, '_blank');
-            } finally {
-               
-                btn.classList.remove('loading-state');
-                btn.innerHTML = originalHTML;
-                btn.disabled = false;
-            }
-        }
-
       
+        function downloadBook(event, link, bookName) {
+          
+            window.open(link, '_blank');
+            showToast('📥 تم فتح الرابط للتحميل', 'success');
+        }
+
+   
         window.onload = () => {
             if (localStorage.getItem('ae_student')) {
                 showMainPage();
@@ -562,26 +476,27 @@
                                 showToast('✅ تم التحقق بنجاح!', 'success');
                                 showMainPage();
                             } else {
-                                showToast('❌ الطالب غير موجود', 'error');
-                                setTimeout(() => startScan(), 1500);
+                                showToast('❌ الكود غير صحيح', 'error');
+                                startScan();
                             }
                         } catch (err) {
-                            showToast('❌ خطأ في الاتصال', 'error');
-                            setTimeout(() => startScan(), 1500);
+                            showToast('⚠️ خطأ في الاتصال', 'error');
+                            startScan();
                         }
-                    }, () => {});
+                    },
+                    (errorMessage) => {
+            
+                    });
             } catch (err) {
-                console.error(err);
-                showToast('تعذر الوصول للكاميرا', 'error');
+                console.error("فشل تشغيل الكاميرا:", err);
+                alert("تعذر الوصول إلى الكاميرا. تأكد من السماح بالوصول.");
             }
         }
 
         function logout() {
             localStorage.removeItem('ae_student');
-
-            for (const key in booksCache) {
-                delete booksCache[key];
-            }
+            booksCache = {}; 
+            showToast('👋 تم تسجيل الخروج', 'success');
             showPage('scan');
             startScan();
         }
