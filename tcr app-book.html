@@ -19,7 +19,7 @@
         .login-box { background: var(--card); border-radius: 16px; padding: 30px; margin-top: 50px; text-align: center; }
         .login-box input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #222; color: white; }
         .book-card { background: var(--card); border-radius: 12px; padding: 16px; margin: 12px 0; display: flex; align-items: center; gap: 16px; }
-        .book-card img { width: 90px; height: 90px; border-radius: 8px; object-fit: cover; }
+        .book-card img { width: 90px; height: 90px; border-radius: 8px; object-fit: cover; background: #333; }
         .book-info { flex: 1; }
         .book-info h3 { color: var(--accent); margin-bottom: 4px; }
         .book-info small { color: #aaa; }
@@ -27,21 +27,27 @@
         .modal.active { display: flex; }
         .modal-content { background: var(--card); border-radius: 16px; padding: 24px; width: 90%; max-width: 450px; }
         .modal-content input, .modal-content select { width: 100%; padding: 10px; margin: 8px 0; border-radius: 8px; border: 1px solid #444; background: #222; color: white; }
+        @media (min-width: 769px) {
+            #loginPage { position: fixed; top: 20px; right: 20px; z-index: 1000; width: auto; max-width: 350px; }
+            #loginPage .header { display: none; }
+            #loginPage .container { padding: 0; }
+            .login-box { margin-top: 0; padding: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        }
     </style>
 </head>
 <body>
-    
-    <div id="loginPage" style="width:100%;">
-        <div class="header"><h1>🔐 تسجيل الدخول</h1></div>
+    <div id="loginPage">
         <div class="container">
             <div class="login-box">
                 <h2>مرحباً بك</h2>
-                <input type="text" id="A.3tef" placeholder="username">
-                <input type="password" id="241988" placeholder="password">
+                <!--//////////////////////////////////////////////////////////////////////////////////////////////////////-->
+                <input type="text" id="username" placeholder="Username">
+                <input type="password" id="password" placeholder="Password">
                 <button class="btn btn-primary" style="width:100%; margin-top:16px;" onclick="login()">دخول</button>
             </div>
         </div>
     </div>
+
     <div id="adminPage" style="display:none; width:100%;">
         <div class="header">
             <button class="btn btn-primary" onclick="openModal()">➕ إنشاء جديد</button>
@@ -50,12 +56,12 @@
         </div>
         <div class="container" id="booksList"></div>
     </div>
-    
+
     <div class="modal" id="bookModal">
         <div class="modal-content">
             <h2 id="modalTitle">📘 إضافة كتاب جديد</h2>
             <input type="text" id="bookName" placeholder="اسم الكتاب">
-            <input type="url" id="bookImage" placeholder="رابط الصورة">
+            <input type="url" id="bookImage" placeholder="رابط الصورة (اختياري)">
             <input type="url" id="bookLink" placeholder="رابط التحميل">
             <select id="category" onchange="updateGrades()">
                 <option value="">اختر التصنيف</option>
@@ -71,9 +77,10 @@
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
-        const ADMIN_USER = "admin";
-        const ADMIN_PASS = "ae123456";
+        <!--//////////////////////////////////////////////////////////////////////////////////////////////////////-->
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
+        const ADMIN_USER = "A.3tef";
+        const ADMIN_PASS = "a241988";
 
         const gradesMap = {
             primary: ["4 ابتدائي", "5 ابتدائي", "6 ابتدائي"],
@@ -82,18 +89,24 @@
         };
 
         window.onload = () => {
-            if (localStorage.getItem('ae_admin')) { document.getElementById('loginPage').style.display = 'none'; document.getElementById('adminPage').style.display = 'block'; loadBooks(); }
+            if (localStorage.getItem('ae_admin')) {
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('adminPage').style.display = 'block';
+                loadBooks();
+            }
         };
 
         function login() {
-            const u = document.getElementById('username').value;
-            const p = document.getElementById('password').value;
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
             if (u === ADMIN_USER && p === ADMIN_PASS) {
                 localStorage.setItem('ae_admin', 'true');
                 document.getElementById('loginPage').style.display = 'none';
                 document.getElementById('adminPage').style.display = 'block';
                 loadBooks();
-            } else { alert("❌ بيانات خاطئة"); }
+            } else {
+                alert("❌ بيانات خاطئة");
+            }
         }
 
         function logout() { localStorage.removeItem('ae_admin'); location.reload(); }
@@ -107,50 +120,78 @@
         }
 
         async function loadBooks() {
-            const resp = await fetch(SCRIPT_URL + "?action=getBooks");
-            const books = await resp.json();
-            document.getElementById('booksList').innerHTML = books.map(b => `
-                <div class="book-card">
-                    <img src="${b.image}" onerror="this.src='logo.png'">
-                    <div class="book-info">
-                        <h3>${b.name}</h3>
-                        <small>${b.category === 'primary' ? 'ابتدائي' : b.category === 'prep' ? 'اعدادي' : 'ثانوي'} - ${b.grade}</small>
-                    </div>
-                    <button class="btn btn-edit" onclick="editBook('${b.id}', '${b.name}', '${b.image}', '${b.link}', '${b.category}', '${b.grade}')">✏️</button>
-                    <button class="btn btn-danger" onclick="deleteBook('${b.id}')">🗑</button>
-                </div>
-            `).join('');
+            try {
+                const resp = await fetch(SCRIPT_URL + "?action=getBooks");
+                const books = await resp.json();
+                const container = document.getElementById('booksList');
+                if (!books.length) {
+                    container.innerHTML = '<p style="text-align:center; color:#aaa;">لا توجد كتب بعد</p>';
+                    return;
+                }
+                container.innerHTML = books.map(b => {
+                    const imgSrc = b.image || 'logo.png';
+                    return `
+                    <div class="book-card">
+                        <img src="${imgSrc}" onerror="this.src='logo.png'" alt="صورة الكتاب">
+                        <div class="book-info">
+                            <h3>${b.name}</h3>
+                            <small>${b.category === 'primary' ? 'ابتدائي' : b.category === 'prep' ? 'اعدادي' : 'ثانوي'} - ${b.grade}</small>
+                        </div>
+                        <button class="btn btn-edit" onclick="editBook('${b.id}')">✏️</button>
+                        <button class="btn btn-danger" onclick="deleteBook('${b.id}')">🗑</button>
+                    </div>`;
+                }).join('');
+            } catch (e) {
+                alert("فشل تحميل الكتب");
+            }
         }
 
-        function openModal(id = '', name = '', image = '', link = '', category = '', grade = '') {
-            document.getElementById('editId').value = id;
-            document.getElementById('bookName').value = name;
-            document.getElementById('bookImage').value = image;
-            document.getElementById('bookLink').value = link;
-            document.getElementById('category').value = category;
-            updateGrades();
-            document.getElementById('grade').value = grade;
-            document.getElementById('modalTitle').textContent = id ? '✏️ تعديل كتاب' : '📘 إضافة كتاب جديد';
+        async function openModal(bookId = null) {
+            if (bookId) {
+                const resp = await fetch(SCRIPT_URL + "?action=getBooks");
+                const books = await resp.json();
+                const book = books.find(b => b.id == bookId);
+                if (book) {
+                    document.getElementById('editId').value = book.id;
+                    document.getElementById('bookName').value = book.name;
+                    document.getElementById('bookImage').value = book.image || '';
+                    document.getElementById('bookLink').value = book.link;
+                    document.getElementById('category').value = book.category;
+                    updateGrades();
+                    document.getElementById('grade').value = book.grade;
+                    document.getElementById('modalTitle').textContent = '✏️ تعديل كتاب';
+                }
+            } else {
+                document.getElementById('editId').value = '';
+                document.getElementById('bookName').value = '';
+                document.getElementById('bookImage').value = '';
+                document.getElementById('bookLink').value = '';
+                document.getElementById('category').value = '';
+                document.getElementById('grade').innerHTML = '<option value="">اختر الصف</option>';
+                document.getElementById('grade').disabled = true;
+                document.getElementById('modalTitle').textContent = '📘 إضافة كتاب جديد';
+            }
             document.getElementById('bookModal').classList.add('active');
         }
 
-        function editBook(id, name, image, link, category, grade) {
-            openModal(id, name, image, link, category, grade);
-        }
-
+        function editBook(id) { openModal(id); }
         function closeModal() { document.getElementById('bookModal').classList.remove('active'); }
 
         async function saveBook() {
-            const data = {
-                id: document.getElementById('editId').value,
-                name: document.getElementById('bookName').value,
-                image: document.getElementById('bookImage').value,
-                link: document.getElementById('bookLink').value,
-                category: document.getElementById('category').value,
-                grade: document.getElementById('grade').value,
-                action: document.getElementById('editId').value ? 'update' : 'create'
-            };
-            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
+            const id = document.getElementById('editId').value;
+            const name = document.getElementById('bookName').value.trim();
+            const image = document.getElementById('bookImage').value.trim();
+            const link = document.getElementById('bookLink').value.trim();
+            const category = document.getElementById('category').value;
+            const grade = document.getElementById('grade').value;
+
+            if (!name || !link || !category || !grade) {
+                alert("يرجى ملء جميع الحقول المطلوبة");
+                return;
+            }
+
+            const bookData = { id, name, image, link, category, grade, action: id ? 'update' : 'create' };
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(bookData) });
             closeModal();
             loadBooks();
         }
