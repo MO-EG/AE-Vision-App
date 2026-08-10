@@ -112,6 +112,24 @@
             showPage('grades');
         }
 
+        function forceDownload(url, filename) {
+            fetch(url)
+                .then(response => response.blob())
+                .then(blob => {
+                    const blobUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = filename || 'downloaded_file';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(blobUrl);
+                })
+                .catch(() => {
+                    window.open(url, '_blank');
+                });
+        }
+
         async function showBooks(category, grade) {
             document.getElementById('booksTitle').textContent = grade;
             const resp = await fetch(SCRIPT_URL + `?action=getBooks&category=${category}&grade=${encodeURIComponent(grade)}`);
@@ -126,7 +144,7 @@
                     <div class="book-card">
                         <img src="${imgSrc}" onerror="this.src='logo.png'" alt="صورة الكتاب">
                         <div class="book-info"><div class="book-title">${b.name}</div></div>
-                        <a href="${b.link}" target="_blank"><button class="download-btn">⬇️ تحميل</button></a>
+                        <button class="download-btn" onclick="forceDownload('${b.link}', '${b.name}.pdf')">⬇️ تحميل</button>
                     </div>`;
                 }).join('');
             }
