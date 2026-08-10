@@ -26,7 +26,6 @@
     </style>
 </head>
 <body>
-    <!-- واجهة الباركود -->
     <div id="scanPage" style="width:100%;">
         <div class="header"><h1>AE Vision</h1><div></div></div>
         <div class="container">
@@ -35,7 +34,6 @@
         </div>
     </div>
 
-    <!-- واجهة التصنيفات -->
     <div id="mainPage" style="display:none; width:100%;">
         <div class="header">
             <h1>AE Vision</h1>
@@ -48,7 +46,6 @@
         </div>
     </div>
 
-    <!-- واجهة الصفوف -->
     <div id="gradePage" style="display:none; width:100%;">
         <div class="header">
             <h1 id="gradeTitle">الصفوف</h1>
@@ -60,7 +57,6 @@
         </div>
     </div>
 
-    <!-- واجهة الكتب -->
     <div id="booksPage" style="display:none; width:100%;">
         <div class="header">
             <h1 id="booksTitle">الكتب</h1>
@@ -71,9 +67,9 @@
             <div id="booksContainer"></div>
         </div>
     </div>
-
+/////////////////////////////////////////////////////////////////////////////////////
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
         let html5QrCode;
         let currentCategory = '';
 
@@ -89,7 +85,6 @@
             else startScan();
         };
 
-        // =============== الباركود ===============
         async function startScan() {
             showPage('scan');
             if (html5QrCode) { try { html5QrCode.stop(); } catch(e) {} }
@@ -112,7 +107,6 @@
             } catch(err) { alert("تعذر الوصول للكاميرا"); }
         }
 
-        // =============== التنقل ===============
         function showPage(page) {
             document.getElementById('scanPage').style.display = page === 'scan' ? 'block' : 'none';
             document.getElementById('mainPage').style.display = page === 'main' ? 'block' : 'none';
