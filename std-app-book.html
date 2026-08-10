@@ -184,7 +184,6 @@
             background: #666;
         }
 
-        /* Loading Spinner */
         .loading-container {
             display: flex;
             flex-direction: column;
@@ -221,7 +220,7 @@
             }
         }
 
-        /* Fade-in animation */
+
         .fade-in {
             animation: fadeIn 0.35s ease-out;
         }
@@ -280,10 +279,10 @@
 </head>
 <body>
 
-    <!-- Toast Notification -->
+
     <div class="toast" id="toast"></div>
 
-    <!-- ============ صفحة المسح ============ -->
+
     <div id="scanPage" style="width:100%">
         <div class="header"><h1>AE Vision</h1><div></div></div>
         <div class="container">
@@ -292,7 +291,7 @@
         </div>
     </div>
 
-    <!-- ============ الصفحة الرئيسية ============ -->
+
     <div id="mainPage" style="display:none; width:100%">
         <div class="header"><h1>AE Vision</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -302,7 +301,7 @@
         </div>
     </div>
 
-    <!-- ============ صفحة الصفوف ============ -->
+
     <div id="gradePage" style="display:none; width:100%">
         <div class="header"><h1 id="gradeTitle">الصفوف</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -311,7 +310,7 @@
         </div>
     </div>
 
-    <!-- ============ صفحة الكتب ============ -->
+
     <div id="booksPage" style="display:none; width:100%">
         <div class="header"><h1 id="booksTitle">الكتب</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -324,8 +323,8 @@
         const SCRIPT_URL =
             "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
         let html5QrCode;
-        let currentCategory = null; // لتتبع القسم الحالي للرجوع الصحيح
-        const booksCache = {}; // تخزين مؤقت للكتب: { "primary_4 ابتدائي": [...books] }
+        let currentCategory = null; 
+        const booksCache = {}; 
 
         const gradesMap = {
             primary: ["4 ابتدائي", "5 ابتدائي", "6 ابتدائي"],
@@ -333,7 +332,7 @@
             secondary: ["1 ثانوي", "2 ثانوي", "3 ثانوي"]
         };
 
-        // ==================== دوال العرض والتنقل ====================
+
         function showPage(p) {
             document.getElementById('scanPage').style.display = p === 'scan' ? 'block' : 'none';
             document.getElementById('mainPage').style.display = p === 'main' ? 'block' : 'none';
@@ -360,7 +359,6 @@
             document.getElementById('booksTitle').textContent = grade;
             const container = document.getElementById('booksContainer');
 
-            // إظهار الـ loading فوراً
             container.innerHTML = `
                 <div class="loading-container fade-in">
                     <div class="spinner"></div>
@@ -370,9 +368,9 @@
 
             const cacheKey = `${category}_${grade}`;
 
-            // التحقق من وجود البيانات في الكاش
+
             if (booksCache[cacheKey]) {
-                // استخدام البيانات المخزنة مؤقتاً
+
                 renderBooks(booksCache[cacheKey], container);
                 return;
             }
@@ -384,7 +382,7 @@
                 );
                 const books = await resp.json();
 
-                // تخزين في الكاش
+
                 booksCache[cacheKey] = books;
                 renderBooks(books, container);
             } catch (err) {
@@ -408,7 +406,7 @@
                 const imgSrc = b.image || 'logo.png';
                 const bookName = b.name || 'كتاب بدون اسم';
                 const bookLink = b.link || '';
-                // استخدام data-link لتخزين الرابط وتجنب مشاكل escaping
+
                 return `
                     <div class="book-card fade-in" style="animation-delay:${i*0.04}s">
                         <img src="${imgSrc}" onerror="this.src='logo.png'" alt="صورة الكتاب" loading="lazy">
@@ -427,7 +425,7 @@
                 showMainPage();
             } else if (page === 'grades') {
                 if (currentCategory) {
-                    // إعادة عرض صفحة الصفوف مع الاحتفاظ بـ currentCategory
+
                     const titles = { primary: 'ابتدائي', prep: 'اعدادي', secondary: 'ثانوي' };
                     document.getElementById('gradeTitle').textContent = titles[currentCategory];
                     document.getElementById('gradesContainer').innerHTML = gradesMap[currentCategory].map((g, i) =>
@@ -440,7 +438,7 @@
             }
         }
 
-        // ==================== Toast Notification ====================
+
         function showToast(message, type = '') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -451,9 +449,8 @@
             }, 3000);
         }
 
-        // ==================== تحميل مباشر للكتب ====================
+
         function getGoogleDriveDirectLink(url) {
-            // تحويل روابط Google Drive إلى روابط تحميل مباشر
             const patterns = [
                 /drive\.google\.com\/file\/d\/([^\/]+)\/view/,
                 /drive\.google\.com\/open\?id=([^&]+)/,
@@ -467,14 +464,14 @@
                     return `https://drive.google.com/uc?export=download&id=${match[1]}`;
                 }
             }
-            return url; // إرجاع الرابط الأصلي إذا لم يكن Google Drive
+            return url; 
         }
 
         async function downloadBook(event, link, bookName) {
             const btn = event.currentTarget;
             const originalHTML = btn.innerHTML;
 
-            // تعطيل الزر وإظهار حالة التحميل
+
             btn.classList.add('loading-state');
             btn.innerHTML = '⏳ جاري التحميل...';
             btn.disabled = true;
@@ -482,11 +479,10 @@
             try {
                 const directLink = getGoogleDriveDirectLink(link);
 
-                // محاولة التحميل المباشر عبر fetch + blob
                 try {
                     const response = await fetch(directLink, {
                         mode: 'cors',
-                        signal: AbortSignal.timeout(15000) // 15 ثانية timeout
+                        signal: AbortSignal.timeout(15000) 
                     });
 
                     if (response.ok) {
@@ -494,7 +490,6 @@
                         const blobUrl = window.URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = blobUrl;
-                        // التأكد من أن الامتداد .pdf
                         const fileName = bookName.endsWith('.pdf') ? bookName : bookName + '.pdf';
                         a.download = fileName;
                         document.body.appendChild(a);
@@ -506,13 +501,12 @@
                         throw new Error('Fetch failed with status: ' + response.status);
                     }
                 } catch (fetchError) {
-                    // فشل الـ fetch (غالباً CORS)، فتح الرابط مباشرة
                     console.warn('تعذر التحميل المباشر، فتح الرابط:', fetchError.message);
                     const a = document.createElement('a');
                     a.href = link;
                     a.target = '_blank';
                     a.rel = 'noopener noreferrer';
-                    // محاولة إجبار التحميل عبر download attribute
+
                     const fileName = bookName.endsWith('.pdf') ? bookName : bookName + '.pdf';
                     a.download = fileName;
                     document.body.appendChild(a);
@@ -523,17 +517,17 @@
             } catch (err) {
                 console.error('خطأ في التحميل:', err);
                 showToast('❌ فشل التحميل. حاول مرة أخرى.', 'error');
-                // فتح الرابط كحل أخير
+         
                 window.open(link, '_blank');
             } finally {
-                // استعادة حالة الزر
+            
                 btn.classList.remove('loading-state');
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }
         }
 
-        // ==================== QR Code Scanner ====================
+
         window.onload = () => {
             if (localStorage.getItem('ae_student')) {
                 showMainPage();
