@@ -112,22 +112,16 @@
             showPage('grades');
         }
 
+        // دالة التحميل الجديدة - تحمل الملف مباشرة بدون fetch
         function forceDownload(url, filename) {
-            fetch(url)
-                .then(response => response.blob())
-                .then(blob => {
-                    const blobUrl = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = blobUrl;
-                    a.download = filename || 'downloaded_file';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(blobUrl);
-                })
-                .catch(() => {
-                    window.open(url, '_blank');
-                });
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = filename || 'downloaded_file';
+            a.target = '_blank';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
         async function showBooks(category, grade) {
