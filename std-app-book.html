@@ -112,35 +112,6 @@
             showPage('grades');
         }
 
-      
-        function forceDownload(url, filename) {
-       
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) throw new Error('Network error');
-                    return response.blob();
-                })
-                .then(blob => {
-                    const blobUrl = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = blobUrl;
-                    a.download = filename || 'downloaded_file';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(blobUrl);
-                })
-                .catch(() => {
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.target = '_blank';
-                    a.download = filename; 
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                });
-        }
-
         async function showBooks(category, grade) {
             document.getElementById('booksTitle').textContent = grade;
             const resp = await fetch(SCRIPT_URL + `?action=getBooks&category=${category}&grade=${encodeURIComponent(grade)}`);
@@ -155,7 +126,7 @@
                     <div class="book-card">
                         <img src="${imgSrc}" onerror="this.src='logo.png'" alt="صورة الكتاب">
                         <div class="book-info"><div class="book-title">${b.name}</div></div>
-                        <button class="download-btn" onclick="forceDownload('${b.link}', '${b.name}.pdf')">⬇️ تحميل</button>
+                        <a href="${b.link}" target="_blank"><button class="download-btn">⬇️ تحميل</button></a>
                     </div>`;
                 }).join('');
             }
