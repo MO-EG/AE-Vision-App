@@ -7,7 +7,6 @@
     <script src="https://unpkg.com/html5-qrcode">
     </script>
     <style>
-        /* ---- نفس التنسيقات السابقة بدون تغيير ---- */
         :root {
             --bg: #0d1117;
             --card: #161b22;
@@ -185,6 +184,7 @@
             background: #666;
         }
 
+
         .loading-container {
             display: flex;
             flex-direction: column;
@@ -220,6 +220,7 @@
                 opacity: 1;
             }
         }
+
 
         .fade-in {
             animation: fadeIn 0.35s ease-out;
@@ -279,9 +280,10 @@
 </head>
 <body>
 
+  
     <div class="toast" id="toast"></div>
 
-    <!-- ============ صفحة المسح ============ -->
+  
     <div id="scanPage" style="width:100%">
         <div class="header"><h1>AE Vision</h1><div></div></div>
         <div class="container">
@@ -290,7 +292,7 @@
         </div>
     </div>
 
-    <!-- ============ الصفحة الرئيسية ============ -->
+
     <div id="mainPage" style="display:none; width:100%">
         <div class="header"><h1>AE Vision</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -300,7 +302,7 @@
         </div>
     </div>
 
-    <!-- ============ صفحة الصفوف ============ -->
+  
     <div id="gradePage" style="display:none; width:100%">
         <div class="header"><h1 id="gradeTitle">الصفوف</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -309,7 +311,7 @@
         </div>
     </div>
 
-    <!-- ============ صفحة الكتب ============ -->
+  
     <div id="booksPage" style="display:none; width:100%">
         <div class="header"><h1 id="booksTitle">الكتب</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -322,8 +324,8 @@
         const SCRIPT_URL =
             "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
         let html5QrCode;
-        let currentCategory = null;
-        const booksCache = {};
+        let currentCategory = null; 
+        const booksCache = {}; 
 
         const gradesMap = {
             primary: ["4 ابتدائي", "5 ابتدائي", "6 ابتدائي"],
@@ -331,7 +333,7 @@
             secondary: ["1 ثانوي", "2 ثانوي", "3 ثانوي"]
         };
 
-        // ==================== دوال العرض والتنقل ====================
+       
         function showPage(p) {
             document.getElementById('scanPage').style.display = p === 'scan' ? 'block' : 'none';
             document.getElementById('mainPage').style.display = p === 'main' ? 'block' : 'none';
@@ -358,6 +360,7 @@
             document.getElementById('booksTitle').textContent = grade;
             const container = document.getElementById('booksContainer');
 
+          
             container.innerHTML = `
                 <div class="loading-container fade-in">
                     <div class="spinner"></div>
@@ -367,7 +370,9 @@
 
             const cacheKey = `${category}_${grade}`;
 
+       
             if (booksCache[cacheKey]) {
+            
                 renderBooks(booksCache[cacheKey], container);
                 return;
             }
@@ -378,6 +383,8 @@
                     `?action=getBooks&category=${category}&grade=${encodeURIComponent(grade)}`
                 );
                 const books = await resp.json();
+
+            
                 booksCache[cacheKey] = books;
                 renderBooks(books, container);
             } catch (err) {
@@ -401,6 +408,7 @@
                 const imgSrc = b.image || 'logo.png';
                 const bookName = b.name || 'كتاب بدون اسم';
                 const bookLink = b.link || '';
+
                 return `
                     <div class="book-card fade-in" style="animation-delay:${i*0.04}s">
                         <img src="${imgSrc}" onerror="this.src='logo.png'" alt="صورة الكتاب" loading="lazy">
@@ -419,6 +427,7 @@
                 showMainPage();
             } else if (page === 'grades') {
                 if (currentCategory) {
+
                     const titles = { primary: 'ابتدائي', prep: 'اعدادي', secondary: 'ثانوي' };
                     document.getElementById('gradeTitle').textContent = titles[currentCategory];
                     document.getElementById('gradesContainer').innerHTML = gradesMap[currentCategory].map((g, i) =>
@@ -431,6 +440,7 @@
             }
         }
 
+
         function showToast(message, type = '') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -441,8 +451,9 @@
             }, 3000);
         }
 
-        // ==================== تحميل مباشر عبر السكريبت ====================
+
         function getGoogleDriveDirectLink(url) {
+         
             const patterns = [
                 /drive\.google\.com\/file\/d\/([^\/]+)\/view/,
                 /drive\.google\.com\/open\?id=([^&]+)/,
@@ -456,49 +467,73 @@
                     return `https://drive.google.com/uc?export=download&id=${match[1]}`;
                 }
             }
-            return null; // ليس Google Drive
+            return url; 
         }
 
         async function downloadBook(event, link, bookName) {
             const btn = event.currentTarget;
             const originalHTML = btn.innerHTML;
+
+           
             btn.classList.add('loading-state');
             btn.innerHTML = '⏳ جاري التحميل...';
             btn.disabled = true;
 
             try {
-                const googleDirect = getGoogleDriveDirectLink(link);
-                if (googleDirect) {
-                    // رابط Google Drive: نحمله مباشرة
-                    window.open(googleDirect, '_blank');
-                    showToast('✅ تم فتح رابط التحميل', 'success');
-                } else {
-                    // رابط catbox أو أي موقع آخر: نستخدم وسيط Apps Script
-                    const proxyUrl = SCRIPT_URL +
-                        `?action=downloadFile&url=${encodeURIComponent(link)}&name=${encodeURIComponent(bookName.endsWith('.pdf') ? bookName : bookName + '.pdf')}`;
-                    // استخدام iframe مخفي لبدء التحميل
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = proxyUrl;
-                    document.body.appendChild(iframe);
-                    // إزالة الـ iframe بعد فترة للتأكد من بدء التحميل
-                    setTimeout(() => {
-                        document.body.removeChild(iframe);
-                    }, 5000);
-                    showToast('📥 جاري بدء التحميل...', 'success');
+                const directLink = getGoogleDriveDirectLink(link);
+
+              
+                try {
+                    const response = await fetch(directLink, {
+                        mode: 'cors',
+                        signal: AbortSignal.timeout(15000) 
+                    });
+
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const blobUrl = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = blobUrl;
+                        // التأكد من أن الامتداد .pdf
+                        const fileName = bookName.endsWith('.pdf') ? bookName : bookName + '.pdf';
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(blobUrl);
+                        showToast('✅ تم بدء التحميل!', 'success');
+                    } else {
+                        throw new Error('Fetch failed with status: ' + response.status);
+                    }
+                } catch (fetchError) {
+                  
+                    console.warn('تعذر التحميل المباشر، فتح الرابط:', fetchError.message);
+                    const a = document.createElement('a');
+                    a.href = link;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+              
+                    const fileName = bookName.endsWith('.pdf') ? bookName : bookName + '.pdf';
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    showToast('📥 تم فتح الرابط للتحميل', 'success');
                 }
             } catch (err) {
                 console.error('خطأ في التحميل:', err);
                 showToast('❌ فشل التحميل. حاول مرة أخرى.', 'error');
+               
                 window.open(link, '_blank');
             } finally {
+               
                 btn.classList.remove('loading-state');
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }
         }
 
-        // ==================== QR Code Scanner ====================
+      
         window.onload = () => {
             if (localStorage.getItem('ae_student')) {
                 showMainPage();
@@ -514,7 +549,8 @@
             }
             html5QrCode = new Html5Qrcode("reader");
             try {
-                await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
+                await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250,
+                        height: 250 } },
                     async (code) => {
                         html5QrCode.stop();
                         const id = code.trim();
@@ -542,6 +578,7 @@
 
         function logout() {
             localStorage.removeItem('ae_student');
+
             for (const key in booksCache) {
                 delete booksCache[key];
             }
