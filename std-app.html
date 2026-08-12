@@ -44,6 +44,7 @@
             <div id="studentList"></div>
         </div>
     </div>
+    <!-- نافذة تفاصيل الطالب -->
     <div class="popup" id="detailPopup">
         <div class="popup-card">
             <img src="logo.png" style="width:60px; border-radius:50%;" onerror="this.style.display='none'">
@@ -59,7 +60,7 @@
 
     <script>
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/id/exec";
         let scannedStudents = [];
         let html5QrCode;
         const saved = localStorage.getItem('scannedStudents');
@@ -139,16 +140,6 @@
             document.getElementById('detailName').textContent = s.Name;
             document.getElementById('detailScore').innerHTML = `🏅 ${s.TotalScore}`;
             document.getElementById('detailRank').innerHTML = `📊 ترتيب المجموعة: ${s.RankGroup}<br>📈 ترتيب الصف: ${s.RankGrade}`;
-
-            let evalHtml = '<div class="section-title">⭐ التقييمات</div>';
-            if (s.Evaluations && s.Evaluations.trim() !== 'لا يوجد' && s.Evaluations.trim() !== '') {
-                const lines = s.Evaluations.split(',').filter(l => l.trim() !== '');
-                lines.forEach(line => {
-                    evalHtml += `<div class="exam-row">${line.trim()}</div>`;
-                });
-            } else {
-                evalHtml += '<div class="exam-row">لا يوجد تقييمات</div>';}
-            document.getElementById('detailEval').innerHTML = evalHtml;
 
             let examsHtml = '<div class="section-title">🧮 الامتحانات</div>';
             if (s.Exams && s.Exams.trim() !== 'لا يوجد' && s.Exams.trim() !== '') {
