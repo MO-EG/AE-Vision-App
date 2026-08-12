@@ -36,7 +36,7 @@
         <h1>AE Vision</h1>
     </div>
     <div class="container">
-        <button class="scan-btn" id="scanButton" onclick="startScan()">📷 مسح QR</button>
+        <button class="scan-btn" id="scanButton" onclick="startScan()">📷 مسح الباركود</button>
         <div id="reader"></div>
         <p style="text-align:center; color:#aaa; font-size:14px; margin-top:12px;">💡 يمكنك حفظ حتى 5 طلاب على هاتفك والاطلاع عليهم في أي وقت</p>
         <div class="student-list" id="studentListContainer" style="display:none;">
@@ -59,7 +59,7 @@
 
     <script>
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        const SCRIPT_URL = "https://script.google.com/macros/s/id/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
         let scannedStudents = [];
         let html5QrCode;
         const saved = localStorage.getItem('scannedStudents');
