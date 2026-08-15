@@ -247,7 +247,7 @@
 
     <div class="toast" id="toast"></div>
 
-    <!-- صفحة المسح -->
+
     <div id="scanPage" style="width:100%">
         <div class="header"><h1>AE Vision</h1><div></div></div>
         <div class="container">
@@ -256,7 +256,7 @@
         </div>
     </div>
 
-    <!-- الصفحة الرئيسية -->
+
     <div id="mainPage" style="display:none; width:100%">
         <div class="header"><h1>AE Vision</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -267,7 +267,7 @@
         </div>
     </div>
 
-    <!-- صفحة الصفوف -->
+
     <div id="gradePage" style="display:none; width:100%">
         <div class="header"><h1 id="gradeTitle">الصفوف</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -276,7 +276,7 @@
         </div>
     </div>
 
-    <!-- صفحة الألبومات -->
+
     <div id="albumsPage" style="display:none; width:100%">
         <div class="header"><h1>🗂 الألبومات</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -285,7 +285,7 @@
         </div>
     </div>
 
-    <!-- صفحة الكتب -->
+
     <div id="booksPage" style="display:none; width:100%">
         <div class="header"><h1 id="booksTitle">الكتب</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -379,7 +379,6 @@
         }
 
         async function showBooks(category, grade) {
-            // تستخدم للصفوف
             document.getElementById('booksTitle').textContent = grade;
             const container = document.getElementById('booksContainer');
             container.innerHTML = `
@@ -392,7 +391,7 @@
             const cacheKey = `cat_${category}_${grade}`;
             if (booksCache[cacheKey]) {
                 renderBooks(booksCache[cacheKey], container);
-                // تحديد حالة الرجوع
+
                 window._booksBack = 'grades';
                 return;
             }
