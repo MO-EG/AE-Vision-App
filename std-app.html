@@ -110,7 +110,6 @@
             document.getElementById('scanStatus').style.display = 'block';
             try {
                 html5QrCode = new Html5Qrcode("reader");
-                // اختيار الكاميرا الخلفية بدقة عالية
                 let cameraId = { facingMode: "environment" };
                 try {
                     const cameras = await Html5Qrcode.getCameras();
