@@ -84,7 +84,6 @@
                 <div class="filter-row">
                     <select class="filter-select" id="albumFilter" onchange="loadBooks()">
                         <option value="">كل الكتب</option>
-                        <!-- سيتم تعبئته من الألبومات -->
                     </select>
                     <button class="btn btn-primary" onclick="openModal()">➕ إضافة كتاب</button>
                 </div>
@@ -97,7 +96,6 @@
         </div>
     </div>
 
-    <!-- Modal إضافة/تعديل كتاب -->
     <div class="modal" id="bookModal">
         <div class="modal-content">
             <h2 id="modalTitle">📘 إضافة كتاب جديد</h2>
@@ -121,7 +119,6 @@
         </div>
     </div>
 
-    <!-- Modal إضافة/تعديل ألبوم -->
     <div class="modal" id="albumModal">
         <div class="modal-content">
             <h2 id="albumModalTitle">🗂 ألبوم جديد</h2>
@@ -194,12 +191,12 @@
             g.disabled = !cat;
         }
 
-        // ============== Albums ==============
+
         async function loadAlbums() {
             try {
                 const resp = await fetch(SCRIPT_URL + "?action=getAlbums");
                 const albums = await resp.json();
-                // تحديث قائمة الفلتر وقائمة الاختيار في المودال
+                
                 const filter = document.getElementById('albumFilter');
                 const albumSelect = document.getElementById('albumId');
                 filter.innerHTML = '<option value="">كل الكتب</option>';
@@ -208,7 +205,7 @@
                     filter.innerHTML += `<option value="${album.id}">${album.name}</option>`;
                     albumSelect.innerHTML += `<option value="${album.id}">${album.name}</option>`;
                 });
-                // تحديث قائمة الألبومات في التبويب
+               
                 const list = document.getElementById('albumsList');
                 if (!albums.length) {
                     list.innerHTML = '<div class="empty-state">لا توجد ألبومات بعد</div>';
@@ -267,7 +264,7 @@
             }
         }
 
-        // ============== Books ==============
+
         async function loadBooks() {
             const albumId = document.getElementById('albumFilter').value;
             let url = SCRIPT_URL + "?action=getBooks";
@@ -300,7 +297,6 @@
         }
 
         async function openModal(bookId = null) {
-            // تحميل الألبومات للاختيار
             await loadAlbums();
             if (bookId) {
                 const resp = await fetch(SCRIPT_URL + "?action=getBooks");
