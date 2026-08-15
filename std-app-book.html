@@ -490,7 +490,6 @@
             } else if (target === 'albums') {
                 showAlbums();
             } else if (target === 'booksBack') {
-                // الرجوع من صفحة الكتب حسب المصدر
                 if (window._booksBack === 'albums') {
                     showAlbums();
                 } else if (window._booksBack === 'grades') {
@@ -513,7 +512,7 @@
 
         function downloadBook(event, link, bookName) {
             window.open(link, '_blank');
-            showToast('📥 تم فتح الرابط للتحميل', 'success');
+            showToast('📥 جاري التحميل', 'success');
         }
 
         window.onload = () => {
