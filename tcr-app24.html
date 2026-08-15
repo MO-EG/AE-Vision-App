@@ -25,11 +25,12 @@
         #searchInput { width: 100%; padding: 14px 40px 14px 20px; border-radius: 30px; border: 2px solid transparent; background: var(--card); color: var(--text); font-size: 16px; outline: none; transition: border-color 0.3s; }
         #searchInput:focus { border-color: var(--accent); }
         .clear-search { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; display: none; }
+        .grade-section { margin: 20px 0 10px 0; }
+        .grade-title { font-size: 18px; font-weight: bold; color: var(--accent); background: rgba(226,176,74,0.1); padding: 8px 16px; border-radius: 20px; display: inline-block; }
         .student-card { background: var(--card); border-radius: 16px; padding: 16px; margin: 12px 0; border-right: 4px solid var(--accent); transition: transform 0.2s, background 0.2s; cursor: pointer; }
         .student-card:hover { transform: translateX(-4px); background: rgba(255,255,255,0.05); }
         .student-name { font-size: 18px; font-weight: bold; color: var(--accent); }
         .score { font-size: 16px; margin: 8px 0; }
-        .rank-group, .rank-grade { font-size: 14px; }
         .exams, .absences { font-size: 13px; color: #bbb; margin-top: 4px; }
         .no-results { text-align: center; margin: 40px 0; color: #aaa; }
         .loading { text-align: center; color: var(--accent); font-size: 18px; animation: pulse 1.5s infinite; }
@@ -59,8 +60,6 @@
             <select class="sort-select" id="sortSelect" onchange="sortAndDisplay()">
                 <option value="name">ترتيب بالاسم</option>
                 <option value="score">ترتيب بالدرجة</option>
-                <option value="rankGroup">ترتيب المجموعة</option>
-                <option value="rankGrade">ترتيب الصف</option>
             </select>
         </div>
         <div class="search-container">
@@ -75,14 +74,6 @@
             <img src="logo.png" style="width:60px; border-radius:50%;" onerror="this.style.display='none'">
             <h2 id="detailName" style="color:var(--accent); margin:12px 0;"></h2>
             <div id="detailScore" style="font-size: 28px; font-weight: bold;"></div>
-            <div class="detail-row">
-                <span class="label">ترتيب المجموعة</span>
-                <span class="value" id="detailRankGroup">-</span>
-            </div>
-            <div class="detail-row">
-                <span class="label">ترتيب الصف</span>
-                <span class="value" id="detailRankGrade">-</span>
-            </div>
             <div id="detailEval" style="color:#aaa; font-size:14px; margin:8px 0;"></div>
             <div id="detailExams" style="color:#aaa; font-size:14px;"></div>
             <div id="detailAbsences" style="color:#aaa; font-size:14px;"></div>
@@ -93,6 +84,14 @@
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
         let allStudents = [];
+        let displayedStudents = []; 
+
+       
+        const gradeOrder = [
+            "4 ابتدائي", "5 ابتدائي", "6 ابتدائي",
+            "1 اعدادي", "2 اعدادي", "3 اعدادي",
+            "1 ثانوي", "2 ثانوي", "3 ثانوي"
+        ];
 
         async function fetchAllStudents() {
             try {
@@ -134,59 +133,83 @@
             sortAndDisplay();
         }
 
+        function getStudentGrade(student) {
+            
+            return student["الصف"] || student["Grade"] || student["grade"] || student["Class"] || "غير محدد";
+        }
+
         function sortAndDisplay() {
             const sortBy = document.getElementById('sortSelect').value;
             const q = document.getElementById('searchInput').value.trim().toLowerCase();
             let filtered = q ? allStudents.filter(s => s.Name && s.Name.toLowerCase().includes(q)) : [...allStudents];
 
-            if (sortBy === 'name') {
-                filtered.sort((a, b) => (a.Name || '').localeCompare(b.Name || '', 'ar'));
-            } else if (sortBy === 'score') {
-                filtered.sort((a, b) => parseFloat(b["Total Score"] || 0) - parseFloat(a["Total Score"] || 0));
-            } else if (sortBy === 'rankGroup') {
-                filtered.sort((a, b) => {
-                    const ra = parseInt(a["الترتيب على المجموعة"]) || Infinity;
-                    const rb = parseInt(b["الترتيب على المجموعة"]) || Infinity;
-                    return ra - rb;
-                });
-            } else if (sortBy === 'rankGrade') {
-                filtered.sort((a, b) => {
-                    const ra = parseInt(a["الترتيب على الصف"]) || Infinity;
-                    const rb = parseInt(b["الترتيب على الصف"]) || Infinity;
-                    return ra - rb;
-                });
-            }
+           
+            const groups = {};
+            filtered.forEach(student => {
+                const grade = getStudentGrade(student);
+                if (!groups[grade]) groups[grade] = [];
+                groups[grade].push(student);
+            });
 
-            displayStudents(filtered);
-        }
+            
+            const sortedGrades = Object.keys(groups).sort((a, b) => {
+                const idxA = gradeOrder.indexOf(a);
+                const idxB = gradeOrder.indexOf(b);
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                if (idxA !== -1) return -1;
+                if (idxB !== -1) return 1;
+                return a.localeCompare(b, 'ar');
+            });
 
-        function displayStudents(students) {
-            const c = document.getElementById('results');
-            if (students.length === 0) { 
-                c.innerHTML = '<div class="no-results">لا يوجد طلاب مطابقون</div>'; 
-                return; 
-            }
-            c.innerHTML = students.map((s, index) => `
-                <div class="student-card" onclick="showStudentPopup(${index})">
-                    <div class="student-name">${s.Name || '-'}</div>
-                    <div class="score">🏅 النتيجة: ${s["Total Score"] || '0'}</div>
-                    <div class="rank-group">📊 ترتيب المجموعة: ${s["الترتيب على المجموعة"] || '-'}</div>
-                    <div class="rank-grade">📈 ترتيب الصف: ${s["الترتيب على الصف"] || '-'}</div>
-                    <div class="exams">🧮 الامتحانات: ${(s["Exams"] || 'لا يوجد').replace(/\n/g, '<br>')}</div>
-                    <div class="absences">🕓 الغياب: ${(s["Absences"] || 'لا يوجد').replace(/\n/g, '<br>')}</div>
-                </div>
-            `).join('');
+            
+            let html = '';
+            sortedGrades.forEach(grade => {
+                let studentsInGrade = groups[grade];
+                
+                if (sortBy === 'name') {
+                    studentsInGrade.sort((a, b) => (a.Name || '').localeCompare(b.Name || '', 'ar'));
+                } else if (sortBy === 'score') {
+                    studentsInGrade.sort((a, b) => parseFloat(b["Total Score"] || 0) - parseFloat(a["Total Score"] || 0));
+                }
+                html += `<div class="grade-section"><span class="grade-title">📚 ${grade}</span></div>`;
+                studentsInGrade.forEach(student => {
+                    html += `
+                        <div class="student-card" data-index="${displayedStudents.length}">
+                            <div class="student-name">${student.Name || '-'}</div>
+                            <div class="score">🏅 النتيجة: ${student["Total Score"] || '0'}</div>
+                            <div class="exams">🧮 الامتحانات: ${(student["Exams"] || 'لا يوجد').replace(/\n/g, '<br>')}</div>
+                            <div class="absences">🕓 الغياب: ${(student["Absences"] || 'لا يوجد').replace(/\n/g, '<br>')}</div>
+                        </div>`;
+                });
+                displayedStudents = displayedStudents.concat(studentsInGrade);
+            });
+
+            
+            displayedStudents = [];
+            sortedGrades.forEach(grade => {
+                displayedStudents = displayedStudents.concat(groups[grade]);
+            });
+
+        
+            document.getElementById('results').innerHTML = html || '<div class="no-results">لا يوجد طلاب مطابقون</div>';
+
+        
+            document.querySelectorAll('.student-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const idx = parseInt(this.dataset.index);
+                    showStudentPopup(idx);
+                });
+            });
         }
 
         function showStudentPopup(index) {
-            const s = allStudents[index];
+            const s = displayedStudents[index];
             if (!s) return;
 
             document.getElementById('detailName').textContent = s.Name || '-';
             document.getElementById('detailScore').innerHTML = `🏅 ${s["Total Score"] || '0'}`;
-            document.getElementById('detailRankGroup').textContent = s["الترتيب على المجموعة"] || '-';
-            document.getElementById('detailRankGrade').textContent = s["الترتيب على الصف"] || '-';
 
+    
             let evalHtml = '';
             if (s["Evaluations"] && s["Evaluations"].trim() !== 'لا يوجد' && s["Evaluations"].trim() !== '') {
                 evalHtml = `<div class="detail-row"><span class="label">التقييم</span><span class="value">${s["Evaluations"]}</span></div>`;
@@ -195,6 +218,7 @@
             }
             document.getElementById('detailEval').innerHTML = evalHtml;
 
+            
             let examsHtml = '<div class="section-title">🧮 الامتحانات</div>';
             if (s["Exams"] && s["Exams"].trim() !== 'لا يوجد' && s["Exams"].trim() !== '') {
                 const lines = s["Exams"].split('\n').filter(l => l.trim() !== '');
@@ -210,7 +234,7 @@
                 examsHtml += '<div class="exam-row">لا يوجد امتحانات</div>';
             }
             document.getElementById('detailExams').innerHTML = examsHtml;
-
+            
             let absencesHtml = '<div class="section-title">🕓 سجل الغياب</div>';
             if (s["Absences"] && s["Absences"].trim() !== 'لا يوجد' && s["Absences"].trim() !== '') {
                 const lines = s["Absences"].split('\n').filter(l => l.trim() !== '');
