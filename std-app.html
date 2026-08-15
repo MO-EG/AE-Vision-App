@@ -59,7 +59,6 @@
         <div class="student-list" id="studentListContainer" style="display:none;">
             <div class="list-header">
                 <h3>الطلاب</h3>
-                <button class="clear-all-btn" onclick="clearAllStudents()">🗑 مسح الكل</button>
             </div>
             <div id="studentList"></div>
         </div>
@@ -148,7 +147,6 @@
                         await fetchAndShowStudent(studentId);
                     },
                     (errorMessage) => {
-                        // يمكن هنا عرض مؤشر المسح
                     }
                 );
             } catch(err) {
