@@ -5,40 +5,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AE Vision Pro</title>
     <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #0d1117; --card: #161b22; --accent: #e2b04a; --text: #e6e6e6; --header-bg: #1a1a2e; }
+        :root { --bg: #0d1117; --card: #161b22; --accent: #e2b04a; --text: #e6e6e6; --danger: #b22222; --header-bg: #1a1a2e; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
-        .header { width: 100%; background: var(--header-bg); padding: 16px; text-align: center; border-bottom: 3px solid var(--accent); display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .header { width: 100%; background: var(--header-bg); padding: 16px; border-bottom: 3px solid var(--accent); display: flex; align-items: center; justify-content: space-between; }
+        .header .logo-title { display: flex; align-items: center; gap: 12px; }
         .header img { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--accent); }
         .header h1 { font-size: 24px; color: var(--accent); }
-        .container { width: 100%; max-width: 420px; padding: 16px; flex: 1; }
-        .refresh-btn { background: var(--accent); color: #000; border: none; padding: 10px 16px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin: 8px 0; }
+        .header .count-badge { background: var(--accent); color: #000; border-radius: 20px; padding: 4px 12px; font-weight: bold; font-size: 14px; }
+        .container { width: 100%; max-width: 600px; padding: 16px; flex: 1; }
+        .actions-row { display: flex; gap: 8px; margin: 12px 0; }
+        .refresh-btn { background: var(--accent); color: #000; border: none; padding: 12px 18px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; flex: 1; transition: transform 0.2s; }
+        .refresh-btn:active { transform: scale(0.98); }
         .refresh-btn:disabled { opacity: 0.6; }
-        #searchInput { width: 100%; padding: 14px 20px; border-radius: 30px; border: none; background: var(--card); color: var(--text); font-size: 16px; margin: 16px 0; outline: none; border: 2px solid transparent; transition: border-color 0.3s; }
+        .sort-select { background: var(--card); color: var(--text); border: 2px solid var(--accent); border-radius: 25px; padding: 10px 16px; font-size: 14px; cursor: pointer; }
+        .search-container { position: relative; margin: 12px 0; }
+        #searchInput { width: 100%; padding: 14px 40px 14px 20px; border-radius: 30px; border: 2px solid transparent; background: var(--card); color: var(--text); font-size: 16px; outline: none; transition: border-color 0.3s; }
         #searchInput:focus { border-color: var(--accent); }
-        .student-card { background: var(--card); border-radius: 16px; padding: 16px; margin: 12px 0; border-right: 4px solid var(--accent); transition: transform 0.2s; }
-        .student-card:hover { transform: translateX(-4px); }
+        .clear-search { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; display: none; }
+        .student-card { background: var(--card); border-radius: 16px; padding: 16px; margin: 12px 0; border-right: 4px solid var(--accent); transition: transform 0.2s, background 0.2s; cursor: pointer; }
+        .student-card:hover { transform: translateX(-4px); background: rgba(255,255,255,0.05); }
         .student-name { font-size: 18px; font-weight: bold; color: var(--accent); }
         .score { font-size: 16px; margin: 8px 0; }
         .rank-group, .rank-grade { font-size: 14px; }
         .exams, .absences { font-size: 13px; color: #bbb; margin-top: 4px; }
         .no-results { text-align: center; margin: 40px 0; color: #aaa; }
+        .loading { text-align: center; color: var(--accent); font-size: 18px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+        .popup { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 100; }
+        .popup.active { display: flex; }
+        .popup-card { background: var(--card); border-radius: 20px; padding: 24px; width: 90%; max-width: 400px; text-align: center; animation: slideUp 0.3s ease; max-height: 85vh; overflow-y: auto; border: 2px solid var(--accent); }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .section-title { color: var(--accent); font-size: 18px; margin: 15px 0 8px 0; border-bottom: 1px solid #333; padding-bottom: 4px; }
+        .exam-row, .absence-row { background: rgba(255,255,255,0.04); padding: 8px 10px; border-radius: 8px; margin: 4px 0; font-size: 14px; }
+        .detail-row { display: flex; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 10px; border-radius: 8px; margin: 6px 0; }
+        .detail-row .label { color: #aaa; }
+        .detail-row .value { color: var(--text); font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="header">
-        <img src="logo.png" alt="AE Vision Logo" onerror="this.style.display='none'">
-        <h1>AE Vision Pro</h1>
+        <div class="logo-title">
+            <img src="logo.png" alt="AE Vision Logo" onerror="this.style.display='none'">
+            <h1>AE Vision Pro</h1>
+        </div>
+        <div class="count-badge" id="studentCount">0</div>
     </div>
     <div class="container">
-        <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">🔄 تحديث البيانات</button>
-        <input type="text" id="searchInput" placeholder="🔍 ابحث باسم الطالب..." oninput="search()">
+        <div class="actions-row">
+            <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">🔄 تحديث</button>
+            <select class="sort-select" id="sortSelect" onchange="sortAndDisplay()">
+                <option value="name">ترتيب بالاسم</option>
+                <option value="score">ترتيب بالدرجة</option>
+                <option value="rankGroup">ترتيب المجموعة</option>
+                <option value="rankGrade">ترتيب الصف</option>
+            </select>
+        </div>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="🔍 ابحث باسم الطالب..." oninput="onSearchInput()">
+            <button class="clear-search" id="clearSearchBtn" onclick="clearSearch()">✕</button>
+        </div>
         <div id="results">⏳ جاري التحميل...</div>
     </div>
 
+    <div class="popup" id="detailPopup">
+        <div class="popup-card">
+            <img src="logo.png" style="width:60px; border-radius:50%;" onerror="this.style.display='none'">
+            <h2 id="detailName" style="color:var(--accent); margin:12px 0;"></h2>
+            <div id="detailScore" style="font-size: 28px; font-weight: bold;"></div>
+            <div class="detail-row">
+                <span class="label">ترتيب المجموعة</span>
+                <span class="value" id="detailRankGroup">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">ترتيب الصف</span>
+                <span class="value" id="detailRankGrade">-</span>
+            </div>
+            <div id="detailEval" style="color:#aaa; font-size:14px; margin:8px 0;"></div>
+            <div id="detailExams" style="color:#aaa; font-size:14px;"></div>
+            <div id="detailAbsences" style="color:#aaa; font-size:14px;"></div>
+            <button onclick="closeDetail()" style="background:var(--accent); border:none; padding:12px 30px; border-radius:20px; margin-top:16px; color:#000; font-weight:bold; width:100%;">إغلاق</button>
+        </div>
+    </div>
+
     <script>
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
         let allStudents = [];
 
@@ -46,8 +98,11 @@
             try {
                 const resp = await fetch(SCRIPT_URL + "?action=getAll");
                 allStudents = await resp.json();
-                displayStudents(allStudents);
-            } catch(e) { document.getElementById('results').innerHTML = '<div class="no-results">⚠️ تعذر تحميل البيانات</div>'; }
+                updateCount();
+                sortAndDisplay();
+            } catch(e) { 
+                document.getElementById('results').innerHTML = '<div class="no-results">⚠️ تعذر تحميل البيانات</div>'; 
+            }
         }
 
         async function refreshData() {
@@ -55,24 +110,64 @@
             btn.disabled = true;
             btn.textContent = "⏳ جاري التحديث...";
             try {
-                const resp = await fetch(SCRIPT_URL + "?action=getAll");
-                allStudents = await resp.json();
-                search();
+                await fetchAllStudents();
             } catch(e) { alert("❌ فشل تحديث البيانات"); }
-            finally { btn.disabled = false; btn.textContent = "🔄 تحديث البيانات"; }
+            finally { 
+                btn.disabled = false; 
+                btn.textContent = "🔄 تحديث"; 
+            }
         }
 
-        function search() {
+        function updateCount() {
+            document.getElementById('studentCount').textContent = allStudents.length;
+        }
+
+        function onSearchInput() {
+            const q = document.getElementById('searchInput').value.trim();
+            document.getElementById('clearSearchBtn').style.display = q ? 'block' : 'none';
+            sortAndDisplay();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearSearchBtn').style.display = 'none';
+            sortAndDisplay();
+        }
+
+        function sortAndDisplay() {
+            const sortBy = document.getElementById('sortSelect').value;
             const q = document.getElementById('searchInput').value.trim().toLowerCase();
-            const filtered = q ? allStudents.filter(s => s.Name && s.Name.toLowerCase().includes(q)) : allStudents;
+            let filtered = q ? allStudents.filter(s => s.Name && s.Name.toLowerCase().includes(q)) : [...allStudents];
+
+            if (sortBy === 'name') {
+                filtered.sort((a, b) => (a.Name || '').localeCompare(b.Name || '', 'ar'));
+            } else if (sortBy === 'score') {
+                filtered.sort((a, b) => parseFloat(b["Total Score"] || 0) - parseFloat(a["Total Score"] || 0));
+            } else if (sortBy === 'rankGroup') {
+                filtered.sort((a, b) => {
+                    const ra = parseInt(a["الترتيب على المجموعة"]) || Infinity;
+                    const rb = parseInt(b["الترتيب على المجموعة"]) || Infinity;
+                    return ra - rb;
+                });
+            } else if (sortBy === 'rankGrade') {
+                filtered.sort((a, b) => {
+                    const ra = parseInt(a["الترتيب على الصف"]) || Infinity;
+                    const rb = parseInt(b["الترتيب على الصف"]) || Infinity;
+                    return ra - rb;
+                });
+            }
+
             displayStudents(filtered);
         }
 
         function displayStudents(students) {
             const c = document.getElementById('results');
-            if (students.length === 0) { c.innerHTML = '<div class="no-results">لا يوجد طلاب</div>'; return; }
-            c.innerHTML = students.map(s => `
-                <div class="student-card">
+            if (students.length === 0) { 
+                c.innerHTML = '<div class="no-results">لا يوجد طلاب مطابقون</div>'; 
+                return; 
+            }
+            c.innerHTML = students.map((s, index) => `
+                <div class="student-card" onclick="showStudentPopup(${index})">
                     <div class="student-name">${s.Name || '-'}</div>
                     <div class="score">🏅 النتيجة: ${s["Total Score"] || '0'}</div>
                     <div class="rank-group">📊 ترتيب المجموعة: ${s["الترتيب على المجموعة"] || '-'}</div>
@@ -83,6 +178,61 @@
             `).join('');
         }
 
+        function showStudentPopup(index) {
+            const s = allStudents[index];
+            if (!s) return;
+
+            document.getElementById('detailName').textContent = s.Name || '-';
+            document.getElementById('detailScore').innerHTML = `🏅 ${s["Total Score"] || '0'}`;
+            document.getElementById('detailRankGroup').textContent = s["الترتيب على المجموعة"] || '-';
+            document.getElementById('detailRankGrade').textContent = s["الترتيب على الصف"] || '-';
+
+            let evalHtml = '';
+            if (s["Evaluations"] && s["Evaluations"].trim() !== 'لا يوجد' && s["Evaluations"].trim() !== '') {
+                evalHtml = `<div class="detail-row"><span class="label">التقييم</span><span class="value">${s["Evaluations"]}</span></div>`;
+            } else {
+                evalHtml = `<div class="detail-row"><span class="label">التقييم</span><span class="value">لا يوجد</span></div>`;
+            }
+            document.getElementById('detailEval').innerHTML = evalHtml;
+
+            let examsHtml = '<div class="section-title">🧮 الامتحانات</div>';
+            if (s["Exams"] && s["Exams"].trim() !== 'لا يوجد' && s["Exams"].trim() !== '') {
+                const lines = s["Exams"].split('\n').filter(l => l.trim() !== '');
+                lines.forEach(line => {
+                    const match = line.match(/التاريخ:\s*(.*?)\s*[-–]\s*الدرجة:\s*(.*)/);
+                    if (match) {
+                        examsHtml += `<div class="exam-row">📅 ${match[1].trim()} — ${match[2].trim()}</div>`;
+                    } else {
+                        examsHtml += `<div class="exam-row">${line}</div>`;
+                    }
+                });
+            } else {
+                examsHtml += '<div class="exam-row">لا يوجد امتحانات</div>';
+            }
+            document.getElementById('detailExams').innerHTML = examsHtml;
+
+            let absencesHtml = '<div class="section-title">🕓 سجل الغياب</div>';
+            if (s["Absences"] && s["Absences"].trim() !== 'لا يوجد' && s["Absences"].trim() !== '') {
+                const lines = s["Absences"].split('\n').filter(l => l.trim() !== '');
+                lines.forEach(line => {
+                    const d = line.match(/(\d{4}-\d{2}-\d{2})/);
+                    if (d) {
+                        absencesHtml += `<div class="absence-row">📌 ${d[1]}</div>`;
+                    } else {
+                        absencesHtml += `<div class="absence-row">${line}</div>`;
+                    }
+                });
+            } else {
+                absencesHtml += '<div class="absence-row">لا يوجد غياب</div>';
+            }
+            document.getElementById('detailAbsences').innerHTML = absencesHtml;
+
+            document.getElementById('detailPopup').classList.add('active');
+        }
+
+        function closeDetail() { 
+            document.getElementById('detailPopup').classList.remove('active'); 
+        }
         fetchAllStudents();
     </script>
 </body>
