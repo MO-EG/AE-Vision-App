@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AE Vision - الطالب</title>
-    <script src="https://unpkg.com/html5-qrcode">
-    </script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root {
             --bg: #0d1117;
@@ -179,7 +178,6 @@
             background: #666;
         }
 
-
         .loading-container {
             display: flex;
             flex-direction: column;
@@ -197,9 +195,7 @@
             animation: spin 0.8s linear infinite;
         }
         @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+            to { transform: rotate(360deg); }
         }
         .loading-text {
             color: #aaa;
@@ -207,28 +203,16 @@
             animation: pulse 1.5s ease-in-out infinite;
         }
         @keyframes pulse {
-            0%,
-            100% {
-                opacity: 0.5;
-            }
-            50% {
-                opacity: 1;
-            }
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
         }
 
-        /* Fade-in animation */
         .fade-in {
             animation: fadeIn 0.35s ease-out;
         }
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .toast {
@@ -248,37 +232,22 @@
             font-family: 'Tajawal', sans-serif;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
         }
-        .toast.show {
-            opacity: 1;
-        }
-        .toast.success {
-            background: #28a745;
-        }
-        .toast.error {
-            background: #b22222;
-        }
+        .toast.show { opacity: 1; }
+        .toast.success { background: #28a745; }
+        .toast.error { background: #b22222; }
 
         @media (max-width: 400px) {
-            .book-card {
-                flex-wrap: wrap;
-            }
-            .book-card img {
-                width: 60px;
-                height: 60px;
-            }
-            .download-btn {
-                width: 100%;
-                justify-content: center;
-            }
+            .book-card { flex-wrap: wrap; }
+            .book-card img { width: 60px; height: 60px; }
+            .download-btn { width: 100%; justify-content: center; }
         }
     </style>
 </head>
 <body>
 
-
     <div class="toast" id="toast"></div>
 
-
+    <!-- صفحة المسح -->
     <div id="scanPage" style="width:100%">
         <div class="header"><h1>AE Vision</h1><div></div></div>
         <div class="container">
@@ -287,17 +256,18 @@
         </div>
     </div>
 
-
+    <!-- الصفحة الرئيسية -->
     <div id="mainPage" style="display:none; width:100%">
         <div class="header"><h1>AE Vision</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
             <div class="section-card fade-in" onclick="showGrades('primary')">📘 ابتدائي</div>
             <div class="section-card fade-in" onclick="showGrades('prep')">📙 اعدادي</div>
             <div class="section-card fade-in" onclick="showGrades('secondary')">📕 ثانوي</div>
+            <div class="section-card fade-in" onclick="showAlbums()" style="border-right-color:#a855f7;">🗂 الألبومات</div>
         </div>
     </div>
 
-
+    <!-- صفحة الصفوف -->
     <div id="gradePage" style="display:none; width:100%">
         <div class="header"><h1 id="gradeTitle">الصفوف</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -306,21 +276,32 @@
         </div>
     </div>
 
+    <!-- صفحة الألبومات -->
+    <div id="albumsPage" style="display:none; width:100%">
+        <div class="header"><h1>🗂 الألبومات</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
+        <div class="container">
+            <button class="back-btn" onclick="goBack('main')">← رجوع</button>
+            <div id="albumsContainer"></div>
+        </div>
+    </div>
 
+    <!-- صفحة الكتب -->
     <div id="booksPage" style="display:none; width:100%">
         <div class="header"><h1 id="booksTitle">الكتب</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
-            <button class="back-btn" onclick="goBack('grades')">← رجوع</button>
+            <button class="back-btn" onclick="goBack('booksBack')">← رجوع</button>
             <div id="booksContainer"></div>
         </div>
     </div>
 
     <script>
-        const SCRIPT_URL =
-            "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
         let html5QrCode;
         let currentCategory = null;
+        let currentAlbumId = null;
+        let currentAlbumName = '';
         const booksCache = {};
+        const albumsCache = {};
 
         const gradesMap = {
             primary: ["4 ابتدائي", "5 ابتدائي", "6 ابتدائي"],
@@ -328,17 +309,18 @@
             secondary: ["1 ثانوي", "2 ثانوي", "3 ثانوي"]
         };
 
-     
         function showPage(p) {
             document.getElementById('scanPage').style.display = p === 'scan' ? 'block' : 'none';
             document.getElementById('mainPage').style.display = p === 'main' ? 'block' : 'none';
             document.getElementById('gradePage').style.display = p === 'grades' ? 'block' : 'none';
+            document.getElementById('albumsPage').style.display = p === 'albums' ? 'block' : 'none';
             document.getElementById('booksPage').style.display = p === 'books' ? 'block' : 'none';
         }
 
         function showMainPage() {
             showPage('main');
             currentCategory = null;
+            currentAlbumId = null;
         }
 
         function showGrades(category) {
@@ -351,11 +333,55 @@
             showPage('grades');
         }
 
+        async function showAlbums() {
+            document.getElementById('albumsContainer').innerHTML = `
+                <div class="loading-container fade-in">
+                    <div class="spinner"></div>
+                    <div class="loading-text">⏳ جاري تحميل الألبومات...</div>
+                </div>`;
+            showPage('albums');
+
+            if (albumsCache['all']) {
+                renderAlbums(albumsCache['all']);
+                return;
+            }
+
+            try {
+                const resp = await fetch(SCRIPT_URL + "?action=getAlbums");
+                const albums = await resp.json();
+                albumsCache['all'] = albums;
+                renderAlbums(albums);
+            } catch (err) {
+                document.getElementById('albumsContainer').innerHTML = `
+                    <div class="loading-container fade-in">
+                        <div style="font-size:32px;">⚠️</div>
+                        <div class="loading-text" style="color:#e74c3c;">تعذر تحميل الألبومات</div>
+                        <button class="back-btn" onclick="goBack('main')">← رجوع</button>
+                    </div>`;
+            }
+        }
+
+        function renderAlbums(albums) {
+            const container = document.getElementById('albumsContainer');
+            if (!albums || albums.length === 0) {
+                container.innerHTML = `
+                    <div class="loading-container fade-in">
+                        <div style="font-size:40px;">📭</div>
+                        <p style="color:#aaa;">لا توجد ألبومات</p>
+                    </div>`;
+                return;
+            }
+            container.innerHTML = albums.map((album, i) => `
+                <div class="sub-card fade-in" style="animation-delay:${i*0.05}s; border-right-color:#a855f7;" onclick="showAlbumBooks('${album.id}', '${album.name.replace(/'/g, "\\'")}')">
+                    🗂 ${album.name}
+                </div>
+            `).join('');
+        }
+
         async function showBooks(category, grade) {
+            // تستخدم للصفوف
             document.getElementById('booksTitle').textContent = grade;
             const container = document.getElementById('booksContainer');
-
-            // إظهار الـ loading فوراً
             container.innerHTML = `
                 <div class="loading-container fade-in">
                     <div class="spinner"></div>
@@ -363,20 +389,19 @@
                 </div>`;
             showPage('books');
 
-            const cacheKey = `${category}_${grade}`;
-
+            const cacheKey = `cat_${category}_${grade}`;
             if (booksCache[cacheKey]) {
                 renderBooks(booksCache[cacheKey], container);
+                // تحديد حالة الرجوع
+                window._booksBack = 'grades';
                 return;
             }
 
             try {
-                const resp = await fetch(
-                    SCRIPT_URL +
-                    `?action=getBooks&category=${category}&grade=${encodeURIComponent(grade)}`
-                );
+                const resp = await fetch(SCRIPT_URL + `?action=getBooks&category=${category}&grade=${encodeURIComponent(grade)}`);
                 const books = await resp.json();
                 booksCache[cacheKey] = books;
+                window._booksBack = 'grades';
                 renderBooks(books, container);
             } catch (err) {
                 console.error("خطأ في جلب الكتب:", err);
@@ -389,10 +414,46 @@
             }
         }
 
+        async function showAlbumBooks(albumId, albumName) {
+            currentAlbumId = albumId;
+            currentAlbumName = albumName;
+            document.getElementById('booksTitle').textContent = albumName;
+            const container = document.getElementById('booksContainer');
+            container.innerHTML = `
+                <div class="loading-container fade-in">
+                    <div class="spinner"></div>
+                    <div class="loading-text">⏳ جاري تحميل كتب الألبوم...</div>
+                </div>`;
+            showPage('books');
+
+            const cacheKey = `album_${albumId}`;
+            if (booksCache[cacheKey]) {
+                window._booksBack = 'albums';
+                renderBooks(booksCache[cacheKey], container);
+                return;
+            }
+
+            try {
+                const resp = await fetch(SCRIPT_URL + `?action=getBooks&albumId=${albumId}`);
+                const books = await resp.json();
+                booksCache[cacheKey] = books;
+                window._booksBack = 'albums';
+                renderBooks(books, container);
+            } catch (err) {
+                console.error("خطأ في جلب كتب الألبوم:", err);
+                container.innerHTML = `
+                    <div class="loading-container fade-in">
+                        <div style="font-size:32px;">⚠️</div>
+                        <div class="loading-text" style="color:#e74c3c;">تعذر تحميل الكتب</div>
+                        <button class="back-btn" onclick="goBack('albums')">← رجوع</button>
+                    </div>`;
+            }
+        }
+
         function renderBooks(books, container) {
             if (!books || books.length === 0) {
                 container.innerHTML =
-                    '<div class="loading-container fade-in"><div style="font-size:40px;">📭</div><p style="color:#aaa;">لا توجد كتب لهذا الصف</p></div>';
+                    '<div class="loading-container fade-in"><div style="font-size:40px;">📭</div><p style="color:#aaa;">لا توجد كتب</p></div>';
                 return;
             }
             container.innerHTML = books.map((b, i) => {
@@ -412,10 +473,10 @@
             }).join('');
         }
 
-        function goBack(page) {
-            if (page === 'main') {
+        function goBack(target) {
+            if (target === 'main') {
                 showMainPage();
-            } else if (page === 'grades') {
+            } else if (target === 'grades') {
                 if (currentCategory) {
                     const titles = { primary: 'ابتدائي', prep: 'اعدادي', secondary: 'ثانوي' };
                     document.getElementById('gradeTitle').textContent = titles[currentCategory];
@@ -426,10 +487,20 @@
                 } else {
                     showMainPage();
                 }
+            } else if (target === 'albums') {
+                showAlbums();
+            } else if (target === 'booksBack') {
+                // الرجوع من صفحة الكتب حسب المصدر
+                if (window._booksBack === 'albums') {
+                    showAlbums();
+                } else if (window._booksBack === 'grades') {
+                    goBack('grades');
+                } else {
+                    showMainPage();
+                }
             }
         }
 
-     
         function showToast(message, type = '') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -440,14 +511,11 @@
             }, 3000);
         }
 
-      
         function downloadBook(event, link, bookName) {
-          
             window.open(link, '_blank');
             showToast('📥 تم فتح الرابط للتحميل', 'success');
         }
 
-   
         window.onload = () => {
             if (localStorage.getItem('ae_student')) {
                 showMainPage();
@@ -463,8 +531,7 @@
             }
             html5QrCode = new Html5Qrcode("reader");
             try {
-                await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250,
-                        height: 250 } },
+                await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
                     async (code) => {
                         html5QrCode.stop();
                         const id = code.trim();
@@ -484,9 +551,8 @@
                             startScan();
                         }
                     },
-                    (errorMessage) => {
-            
-                    });
+                    (errorMessage) => { }
+                );
             } catch (err) {
                 console.error("فشل تشغيل الكاميرا:", err);
                 alert("تعذر الوصول إلى الكاميرا. تأكد من السماح بالوصول.");
@@ -495,7 +561,8 @@
 
         function logout() {
             localStorage.removeItem('ae_student');
-            booksCache = {}; 
+            booksCache = {};
+            albumsCache = {};
             showToast('👋 تم تسجيل الخروج', 'success');
             showPage('scan');
             startScan();
