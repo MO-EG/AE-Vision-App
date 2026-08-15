@@ -5,42 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AE Vision</title>
     <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root { --bg: #0d1117; --card: #161b22; --accent: #e2b04a; --text: #e6e6e6; --danger: #b22222; --header-bg: #1a1a2e; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
-        .header { width: 100%; background: var(--header-bg); padding: 16px; text-align: center; border-bottom: 3px solid var(--accent); display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .header { width: 100%; background: var(--header-bg); padding: 16px; border-bottom: 3px solid var(--accent); display: flex; align-items: center; justify-content: space-between; }
+        .header .logo-title { display: flex; align-items: center; gap: 12px; }
         .header img { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--accent); }
         .header h1 { font-size: 24px; color: var(--accent); }
+        .header .badge { background: var(--accent); color: #000; border-radius: 20px; padding: 4px 12px; font-weight: bold; font-size: 14px; }
         .container { width: 100%; max-width: 420px; padding: 16px; flex: 1; }
-        .scan-btn { background: var(--accent); color: #000; border: none; padding: 14px 24px; border-radius: 30px; font-size: 18px; font-weight: bold; width: 100%; cursor: pointer; margin: 16px 0; }
-        #reader { width: 100%; border-radius: 12px; overflow: hidden; margin: 16px 0; }
+        .scan-btn { background: linear-gradient(135deg, #e2b04a, #f0c96d); color: #000; border: none; padding: 16px 24px; border-radius: 30px; font-size: 18px; font-weight: bold; width: 100%; cursor: pointer; margin: 16px 0; box-shadow: 0 4px 15px rgba(226,176,74,0.3); transition: transform 0.2s; }
+        .scan-btn:hover { transform: translateY(-2px); }
+        .scan-btn:active { transform: scale(0.98); }
+        #reader { width: 100%; border-radius: 16px; overflow: hidden; margin: 16px 0; border: 3px solid var(--accent); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .scan-status { display: none; text-align: center; color: var(--accent); font-size: 16px; margin: 10px 0; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
         .student-list { margin-top: 16px; background: var(--card); border-radius: 16px; padding: 12px; }
-        .student-list h3 { color: var(--accent); margin-bottom: 8px; }
-        .student-item { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; }
+        .student-list .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .student-list h3 { color: var(--accent); margin: 0; }
+        .clear-all-btn { background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+        .student-item { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+        .student-item:hover { background: rgba(255,255,255,0.1); }
         .student-name { font-size: 16px; font-weight: bold; }
         .student-score { color: var(--accent); font-size: 14px; }
         .delete-btn { background: var(--danger); border: none; color: white; padding: 8px 14px; border-radius: 20px; cursor: pointer; font-size: 14px; }
-        .popup { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
+        .popup { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 100; }
         .popup.active { display: flex; }
-        .popup-card { background: var(--card); border-radius: 20px; padding: 24px; width: 90%; max-width: 360px; text-align: center; animation: slideUp 0.3s ease; max-height: 85vh; overflow-y: auto; }
+        .popup-card { background: var(--card); border-radius: 20px; padding: 24px; width: 90%; max-width: 360px; text-align: center; animation: slideUp 0.3s ease; max-height: 85vh; overflow-y: auto; border: 2px solid var(--accent); }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .section-title { color: var(--accent); font-size: 18px; margin: 15px 0 8px 0; border-bottom: 1px solid #333; padding-bottom: 4px; }
         .exam-row, .absence-row { background: rgba(255,255,255,0.04); padding: 8px 10px; border-radius: 8px; margin: 4px 0; font-size: 14px; }
+        .detail-row { display: flex; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 10px; border-radius: 8px; margin: 6px 0; }
+        .detail-row .label { color: #aaa; }
+        .detail-row .value { color: var(--text); font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="header">
-        <img src="logo.png" alt="AE Vision Logo" onerror="this.style.display='none'">
-        <h1>AE Vision</h1>
+        <div class="logo-title">
+            <img src="logo.png" alt="AE Vision Logo" onerror="this.style.display='none'">
+            <h1>AE Vision</h1>
+        </div>
+        <div class="badge" id="studentCount">0</div>
     </div>
     <div class="container">
         <button class="scan-btn" id="scanButton" onclick="startScan()">📷 مسح الباركود</button>
         <div id="reader"></div>
+        <div class="scan-status" id="scanStatus">⏳ جاري فتح الكاميرا...</div>
         <p style="text-align:center; color:#aaa; font-size:14px; margin-top:12px;">💡 يمكنك حفظ حتى 5 طلاب على هاتفك والاطلاع عليهم في أي وقت</p>
         <div class="student-list" id="studentListContainer" style="display:none;">
-            <h3>الطلاب</h3>
+            <div class="list-header">
+                <h3>الطلاب</h3>
+                <button class="clear-all-btn" onclick="clearAllStudents()">🗑 مسح الكل</button>
+            </div>
             <div id="studentList"></div>
         </div>
     </div>
@@ -48,22 +68,28 @@
         <div class="popup-card">
             <img src="logo.png" style="width:60px; border-radius:50%;" onerror="this.style.display='none'">
             <h2 id="detailName" style="color:var(--accent); margin:12px 0;"></h2>
-            <div id="detailScore" style="font-size: 24px; font-weight: bold;"></div>
-            <div id="detailRank" style="margin:8px 0;"></div>
-            <div id="detailEval" style="color:#aaa; font-size:14px;"></div>
+            <div id="detailScore" style="font-size: 28px; font-weight: bold;"></div>
+            <div class="detail-row">
+                <span class="label">ترتيب المجموعة</span>
+                <span class="value" id="detailRankGroup">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">ترتيب الصف</span>
+                <span class="value" id="detailRankGrade">-</span>
+            </div>
+            <div id="detailEval" style="color:#aaa; font-size:14px; margin:8px 0;"></div>
             <div id="detailExams" style="color:#aaa; font-size:14px;"></div>
             <div id="detailAbsences" style="color:#aaa; font-size:14px;"></div>
-            <button onclick="closeDetail()" style="background:var(--accent); border:none; padding:10px 30px; border-radius:20px; margin-top:16px; color:#000; font-weight:bold;">إغلاق</button>
+            <button onclick="closeDetail()" style="background:var(--accent); border:none; padding:12px 30px; border-radius:20px; margin-top:16px; color:#000; font-weight:bold; width:100%;">إغلاق</button>
         </div>
     </div>
 
     <script>
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
         let scannedStudents = [];
         let html5QrCode;
         const saved = localStorage.getItem('scannedStudents');
-        if (saved) { scannedStudents = JSON.parse(saved); renderStudentList(); }
+        if (saved) { scannedStudents = JSON.parse(saved); renderStudentList(); updateBadge(); }
 
         function extractId(scannedText) {
             try {
@@ -74,26 +100,62 @@
             }
         }
 
+        function updateBadge() {
+            document.getElementById('studentCount').textContent = scannedStudents.length;
+        }
+
         async function startScan() {
             if (scannedStudents.length >= 5) { alert("الحد الأقصى 5 طلاب"); return; }
-            if (html5QrCode) { try { html5QrCode.stop(); } catch(e) {} }
-            html5QrCode = new Html5Qrcode("reader");
+            if (html5QrCode) { try { await html5QrCode.stop(); } catch(e) {} html5QrCode = null; }
             document.getElementById('scanButton').style.display = 'none';
+            document.getElementById('scanStatus').style.display = 'block';
             try {
+                html5QrCode = new Html5Qrcode("reader");
+                // اختيار الكاميرا الخلفية بدقة عالية
+                let cameraId = { facingMode: "environment" };
+                try {
+                    const cameras = await Html5Qrcode.getCameras();
+                    if (cameras && cameras.length) {
+                        const backCam = cameras.find(cam => 
+                            cam.label.toLowerCase().includes('back') || 
+                            cam.label.toLowerCase().includes('rear') || 
+                            cam.label.toLowerCase().includes('environment')
+                        );
+                        cameraId = backCam ? backCam.id : cameras[0].id;
+                    }
+                } catch(e) { console.warn('تعذر جلب الكاميرات، سيتم استخدام الافتراضية', e); }
+
+                const config = {
+                    fps: 30,
+                    qrbox: { width: 280, height: 280 },
+                    aspectRatio: 1.0,
+                    videoConstraints: {
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 },
+                        facingMode: { ideal: "environment" }
+                    }
+                };
+
                 await html5QrCode.start(
-                    { facingMode: "environment" },
-                    { fps: 10, qrbox: { width: 250, height: 250 } },
-                    async (code) => {
-                        html5QrCode.stop();
+                    cameraId,
+                    config,
+                    async (decodedText) => {
+                        try { await html5QrCode.stop(); } catch(e) {}
+                        html5QrCode = null;
                         document.getElementById('scanButton').style.display = 'block';
-                        const studentId = extractId(code.trim());
+                        document.getElementById('scanStatus').style.display = 'none';
+                        const studentId = extractId(decodedText.trim());
                         await fetchAndShowStudent(studentId);
                     },
-                    () => {}
+                    (errorMessage) => {
+                        // يمكن هنا عرض مؤشر المسح
+                    }
                 );
-            } catch(err) { 
-                alert("تعذر الوصول إلى الكاميرا"); 
+            } catch(err) {
+                console.error(err);
+                alert("تعذر الوصول إلى الكاميرا. تأكد من منح صلاحية الكاميرا للمتصفح.");
                 document.getElementById('scanButton').style.display = 'block';
+                document.getElementById('scanStatus').style.display = 'none';
             }
         }
 
@@ -121,24 +183,32 @@
                         return;
                     }
                     scannedStudents.push(fullStudent);
-                    localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents));
-                    renderStudentList();
                 } else {
                     scannedStudents[existingIndex] = fullStudent;
-                    localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents));
-                    renderStudentList();
                 }
+                localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents));
+                renderStudentList();
+                updateBadge();
                 showStudentPopup(fullStudent);
 
             } catch(e) { 
-                alert("فشل جلب البيانات"); 
+                alert("فشل جلب البيانات. تأكد من صحة الباركود."); 
             }
         }
 
         function showStudentPopup(s) {
             document.getElementById('detailName').textContent = s.Name;
             document.getElementById('detailScore').innerHTML = `🏅 ${s.TotalScore}`;
-            document.getElementById('detailRank').innerHTML = `📊 ترتيب المجموعة: ${s.RankGroup}<br>📈 ترتيب الصف: ${s.RankGrade}`;
+            document.getElementById('detailRankGroup').textContent = s.RankGroup;
+            document.getElementById('detailRankGrade').textContent = s.RankGrade;
+
+            let evalHtml = '';
+            if (s.Evaluations && s.Evaluations.trim() !== 'لا يوجد' && s.Evaluations.trim() !== '') {
+                evalHtml = `<div class="detail-row"><span class="label">التقييم</span><span class="value">${s.Evaluations}</span></div>`;
+            } else {
+                evalHtml = `<div class="detail-row"><span class="label">التقييم</span><span class="value">لا يوجد</span></div>`;
+            }
+            document.getElementById('detailEval').innerHTML = evalHtml;
 
             let examsHtml = '<div class="section-title">🧮 الامتحانات</div>';
             if (s.Exams && s.Exams.trim() !== 'لا يوجد' && s.Exams.trim() !== '') {
@@ -188,7 +258,9 @@
                         </div>
                         <button class="delete-btn" onclick="event.stopPropagation(); removeStudent(${i})">حذف</button>
                     </div>`).join('');
-            } else { c.style.display = 'none'; }
+            } else { 
+                c.style.display = 'none'; 
+            }
         }
 
         function showStudentFromList(index) {
@@ -200,6 +272,16 @@
             scannedStudents.splice(i,1); 
             localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents)); 
             renderStudentList(); 
+            updateBadge(); 
+        }
+
+        function clearAllStudents() {
+            if (confirm('هل تريد مسح جميع الطلاب؟')) {
+                scannedStudents = [];
+                localStorage.removeItem('scannedStudents');
+                renderStudentList();
+                updateBadge();
+            }
         }
 
         function closeDetail() { 
