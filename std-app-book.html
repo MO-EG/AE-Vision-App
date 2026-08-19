@@ -236,6 +236,38 @@
         .toast.success { background: #28a745; }
         .toast.error { background: #b22222; }
 
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .popup.active {
+            display: flex;
+        }
+        .popup-card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 24px;
+            width: 90%;
+            max-width: 360px;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 2px solid var(--accent);
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         @media (max-width: 400px) {
             .book-card { flex-wrap: wrap; }
             .book-card img { width: 60px; height: 60px; }
@@ -247,6 +279,13 @@
 
     <div class="toast" id="toast"></div>
 
+    <div class="popup" id="alertModal">
+        <div class="popup-card">
+            <h3 style="color:var(--accent); margin-bottom:16px;">تنبيه</h3>
+            <p id="alertMessage" style="margin-bottom:20px; font-size:16px;"></p>
+            <button onclick="closeAlert()" style="background:var(--accent); border:none; padding:10px 24px; border-radius:20px; color:#000; font-weight:bold; cursor:pointer; width:100%;">حسنًا</button>
+        </div>
+    </div>
 
     <div id="scanPage" style="width:100%">
         <div class="header"><h1>AE Vision</h1><div></div></div>
@@ -255,7 +294,6 @@
             <p style="text-align:center; color:#aaa;">📷 وجه الكاميرا نحو الباركود</p>
         </div>
     </div>
-
 
     <div id="mainPage" style="display:none; width:100%">
         <div class="header"><h1>AE Vision</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
@@ -267,7 +305,6 @@
         </div>
     </div>
 
-
     <div id="gradePage" style="display:none; width:100%">
         <div class="header"><h1 id="gradeTitle">الصفوف</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -276,7 +313,6 @@
         </div>
     </div>
 
-
     <div id="albumsPage" style="display:none; width:100%">
         <div class="header"><h1>🗂 الألبومات</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
         <div class="container">
@@ -284,7 +320,6 @@
             <div id="albumsContainer"></div>
         </div>
     </div>
-
 
     <div id="booksPage" style="display:none; width:100%">
         <div class="header"><h1 id="booksTitle">الكتب</h1><button class="logout-btn" onclick="logout()">🚪 خروج</button></div>
@@ -391,7 +426,6 @@
             const cacheKey = `cat_${category}_${grade}`;
             if (booksCache[cacheKey]) {
                 renderBooks(booksCache[cacheKey], container);
-
                 window._booksBack = 'grades';
                 return;
             }
@@ -509,6 +543,25 @@
             }, 3000);
         }
 
+        function showCustomAlert(message, onClose = null) {
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertModal').classList.add('active');
+            if (onClose) {
+                window._alertCallback = onClose;
+            } else {
+                window._alertCallback = null;
+            }
+        }
+
+        function closeAlert() {
+            document.getElementById('alertModal').classList.remove('active');
+            if (window._alertCallback) {
+                const cb = window._alertCallback;
+                window._alertCallback = null;
+                cb();
+            }
+        }
+
         function downloadBook(event, link, bookName) {
             window.open(link, '_blank');
             showToast('📥 جاري التحميل', 'success');
@@ -541,19 +594,17 @@
                                 showToast('✅ تم التحقق بنجاح!', 'success');
                                 showMainPage();
                             } else {
-                                showToast('❌ الكود غير صحيح', 'error');
-                                startScan();
+                                showCustomAlert('❌ الكود غير صحيح', () => startScan());
                             }
                         } catch (err) {
-                            showToast('⚠️ خطأ في الاتصال', 'error');
-                            startScan();
+                            showCustomAlert('⚠️ خطأ في الاتصال', () => startScan());
                         }
                     },
                     (errorMessage) => { }
                 );
             } catch (err) {
                 console.error("فشل تشغيل الكاميرا:", err);
-                alert("تعذر الوصول إلى الكاميرا. تأكد من السماح بالوصول.");
+                showCustomAlert("تعذر الوصول إلى الكاميرا. تأكد من السماح بالوصول.");
             }
         }
 
