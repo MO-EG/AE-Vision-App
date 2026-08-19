@@ -69,6 +69,8 @@
             <div id="studentList"></div>
         </div>
     </div>
+
+    <!-- نافذة تفاصيل الطالب -->
     <div class="popup" id="detailPopup">
         <div class="popup-card">
             <img src="logo.png" style="width:60px; border-radius:50%;" onerror="this.style.display='none'">
@@ -89,17 +91,45 @@
         </div>
     </div>
 
+    <!-- نافذة تأكيد مخصصة -->
+    <div class="popup" id="confirmModal">
+        <div class="popup-card" style="text-align:center;">
+            <h3 style="color:var(--accent); margin-bottom:16px;">تأكيد</h3>
+            <p id="confirmMessage" style="margin-bottom:20px; font-size:16px;"></p>
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button onclick="confirmAction(true)" style="background:var(--danger); border:none; padding:10px 24px; border-radius:20px; color:white; font-weight:bold; cursor:pointer;">نعم</button>
+                <button onclick="confirmAction(false)" style="background:var(--accent); border:none; padding:10px 24px; border-radius:20px; color:#000; font-weight:bold; cursor:pointer;">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyis7KXF90SgojdxtzLg1IB5waVITn3ktHUUUjBz8StQxatSE-tZySlify8oPGXj2J5/exec";
         let scannedStudents = [];
         let html5QrCode;
+        let confirmCallback = null;
+
         const saved = localStorage.getItem('scannedStudents');
         if (saved) { 
             scannedStudents = JSON.parse(saved); 
             renderStudentList(); 
             updateBadge(); 
-            // تحديث تلقائي عند تحميل الصفحة
             setTimeout(refreshSavedStudents, 1000);
+        }
+
+        // دوال نافذة التأكيد المخصصة
+        function showCustomConfirm(message, callback) {
+            document.getElementById('confirmMessage').textContent = message;
+            document.getElementById('confirmModal').classList.add('active');
+            confirmCallback = callback;
+        }
+
+        function confirmAction(result) {
+            document.getElementById('confirmModal').classList.remove('active');
+            if (confirmCallback) {
+                confirmCallback(result);
+                confirmCallback = null;
+            }
         }
 
         function extractId(scannedText) {
@@ -204,6 +234,7 @@
                 alert("فشل جلب البيانات. تأكد من صحة الباركود."); 
             }
         }
+
         async function refreshSavedStudents() {
             if (scannedStudents.length === 0) return;
             for (let i = 0; i < scannedStudents.length; i++) {
@@ -311,12 +342,14 @@
         }
 
         function clearAllStudents() {
-            if (confirm('هل تريد مسح جميع الطلاب؟')) {
-                scannedStudents = [];
-                localStorage.removeItem('scannedStudents');
-                renderStudentList();
-                updateBadge();
-            }
+            showCustomConfirm('هل تريد مسح جميع الطلاب؟', (confirmed) => {
+                if (confirmed) {
+                    scannedStudents = [];
+                    localStorage.removeItem('scannedStudents');
+                    renderStudentList();
+                    updateBadge();
+                }
+            });
         }
 
         function closeDetail() { 
