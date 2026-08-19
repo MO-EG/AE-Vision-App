@@ -372,7 +372,7 @@
             document.getElementById('albumsContainer').innerHTML = `
                 <div class="loading-container fade-in">
                     <div class="spinner"></div>
-                    <div class="loading-text">⏳ جاري تحميل الألبومات...</div>
+                    <div class="loading-text">⏳ جاري التحميل...</div>
                 </div>`;
             showPage('albums');
 
@@ -419,7 +419,7 @@
             container.innerHTML = `
                 <div class="loading-container fade-in">
                     <div class="spinner"></div>
-                    <div class="loading-text">⏳ جاري تحميل الكتب...</div>
+                    <div class="loading-text">⏳ جاري التحميل...</div>
                 </div>`;
             showPage('books');
 
@@ -455,7 +455,7 @@
             container.innerHTML = `
                 <div class="loading-container fade-in">
                     <div class="spinner"></div>
-                    <div class="loading-text">⏳ جاري تحميل كتب الألبوم...</div>
+                    <div class="loading-text">⏳ جاري التحميل...</div>
                 </div>`;
             showPage('books');
 
@@ -491,7 +491,7 @@
             }
             container.innerHTML = books.map((b, i) => {
                 const imgSrc = b.image || 'logo.png';
-                const bookName = b.name || 'كتاب بدون اسم';
+                const bookName = b.name || 'ملف بدون اسم';
                 const bookLink = b.link || '';
                 return `
                     <div class="book-card fade-in" style="animation-delay:${i*0.04}s">
@@ -594,7 +594,7 @@
                                 showToast('✅ تم التحقق بنجاح!', 'success');
                                 showMainPage();
                             } else {
-                                showCustomAlert('❌ الكود غير صحيح', () => startScan());
+                                showCustomAlert('تأكد من صحة الباركود.', () => startScan());
                             }
                         } catch (err) {
                             showCustomAlert('⚠️ خطأ في الاتصال', () => startScan());
