@@ -26,7 +26,9 @@
         .student-list { margin-top: 16px; background: var(--card); border-radius: 16px; padding: 12px; }
         .student-list .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .student-list h3 { color: var(--accent); margin: 0; }
-        .clear-all-btn { background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+        .list-actions { display: flex; gap: 8px; }
+        .clear-all-btn, .refresh-btn { background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+        .refresh-btn { border-color: var(--accent); color: var(--accent); }
         .student-item { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
         .student-item:hover { background: rgba(255,255,255,0.1); }
         .student-name { font-size: 16px; font-weight: bold; }
@@ -59,6 +61,10 @@
         <div class="student-list" id="studentListContainer" style="display:none;">
             <div class="list-header">
                 <h3>الطلاب</h3>
+                <div class="list-actions">
+                    <button class="refresh-btn" onclick="refreshSavedStudents()">🔄 تحديث</button>
+                    <button class="clear-all-btn" onclick="clearAllStudents()">مسح الكل</button>
+                </div>
             </div>
             <div id="studentList"></div>
         </div>
@@ -88,7 +94,13 @@
         let scannedStudents = [];
         let html5QrCode;
         const saved = localStorage.getItem('scannedStudents');
-        if (saved) { scannedStudents = JSON.parse(saved); renderStudentList(); updateBadge(); }
+        if (saved) { 
+            scannedStudents = JSON.parse(saved); 
+            renderStudentList(); 
+            updateBadge(); 
+            // تحديث تلقائي عند تحميل الصفحة
+            setTimeout(refreshSavedStudents, 1000);
+        }
 
         function extractId(scannedText) {
             try {
@@ -191,6 +203,32 @@
             } catch(e) { 
                 alert("فشل جلب البيانات. تأكد من صحة الباركود."); 
             }
+        }
+        async function refreshSavedStudents() {
+            if (scannedStudents.length === 0) return;
+            for (let i = 0; i < scannedStudents.length; i++) {
+                const s = scannedStudents[i];
+                try {
+                    const resp = await fetch(SCRIPT_URL + "?format=json&id=" + s.id);
+                    const student = await resp.json();
+                    if (student.error) continue;
+                    scannedStudents[i] = {
+                        id: s.id,
+                        Name: student.Name || s.Name,
+                        TotalScore: student["Total Score"] || s.TotalScore,
+                        RankGroup: student["الترتيب على المجموعة"] || s.RankGroup,
+                        RankGrade: student["الترتيب على الصف"] || s.RankGrade,
+                        Evaluations: student["Evaluations"] || s.Evaluations,
+                        Exams: student["Exams"] || s.Exams,
+                        Absences: student["Absences"] || s.Absences
+                    };
+                } catch(e) { 
+                    console.warn('فشل تحديث الطالب', s.id, e); 
+                }
+            }
+            localStorage.setItem('scannedStudents', JSON.stringify(scannedStudents));
+            renderStudentList();
+            updateBadge();
         }
 
         function showStudentPopup(s) {
