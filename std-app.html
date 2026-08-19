@@ -70,7 +70,6 @@
         </div>
     </div>
 
-    <!-- نافذة تفاصيل الطالب -->
     <div class="popup" id="detailPopup">
         <div class="popup-card">
             <img src="logo.png" style="width:60px; border-radius:50%;" onerror="this.style.display='none'">
@@ -91,7 +90,6 @@
         </div>
     </div>
 
-    <!-- نافذة تأكيد مخصصة -->
     <div class="popup" id="confirmModal">
         <div class="popup-card" style="text-align:center;">
             <h3 style="color:var(--accent); margin-bottom:16px;">تأكيد</h3>
@@ -100,6 +98,14 @@
                 <button onclick="confirmAction(true)" style="background:var(--danger); border:none; padding:10px 24px; border-radius:20px; color:white; font-weight:bold; cursor:pointer;">نعم</button>
                 <button onclick="confirmAction(false)" style="background:var(--accent); border:none; padding:10px 24px; border-radius:20px; color:#000; font-weight:bold; cursor:pointer;">إلغاء</button>
             </div>
+        </div>
+    </div>
+
+    <div class="popup" id="alertModal">
+        <div class="popup-card" style="text-align:center;">
+            <h3 style="color:var(--accent); margin-bottom:16px;">تنبيه</h3>
+            <p id="alertMessage" style="margin-bottom:20px; font-size:16px;"></p>
+            <button onclick="closeAlert()" style="background:var(--accent); border:none; padding:10px 24px; border-radius:20px; color:#000; font-weight:bold; cursor:pointer; width:100%;">حسنًا</button>
         </div>
     </div>
 
@@ -115,6 +121,15 @@
             renderStudentList(); 
             updateBadge(); 
             setTimeout(refreshSavedStudents, 1000);
+        }
+
+        function showCustomAlert(message) {
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertModal').classList.add('active');
+        }
+
+        function closeAlert() {
+            document.getElementById('alertModal').classList.remove('active');
         }
 
         // دوال نافذة التأكيد المخصصة
@@ -146,7 +161,10 @@
         }
 
         async function startScan() {
-            if (scannedStudents.length >= 5) { alert("الحد الأقصى 5 طلاب"); return; }
+            if (scannedStudents.length >= 5) { 
+                showCustomAlert("الحد الأقصى 5 طلاب"); 
+                return; 
+            }
             if (html5QrCode) { try { await html5QrCode.stop(); } catch(e) {} html5QrCode = null; }
             document.getElementById('scanButton').style.display = 'none';
             document.getElementById('scanStatus').style.display = 'block';
@@ -192,7 +210,7 @@
                 );
             } catch(err) {
                 console.error(err);
-                alert("تعذر الوصول إلى الكاميرا. تأكد من منح صلاحية الكاميرا للمتصفح.");
+                showCustomAlert("تعذر الوصول إلى الكاميرا. تأكد من منح صلاحية الكاميرا للمتصفح.");
                 document.getElementById('scanButton').style.display = 'block';
                 document.getElementById('scanStatus').style.display = 'none';
             }
@@ -218,7 +236,7 @@
                 const existingIndex = scannedStudents.findIndex(s => s.id === id);
                 if (existingIndex === -1) {
                     if (scannedStudents.length >= 5) {
-                        alert("القائمة ممتلئة (5 طلاب).");
+                        showCustomAlert("القائمة ممتلئة (5 طلاب).");
                         return;
                     }
                     scannedStudents.push(fullStudent);
@@ -231,7 +249,7 @@
                 showStudentPopup(fullStudent);
 
             } catch(e) { 
-                alert("فشل جلب البيانات. تأكد من صحة الباركود."); 
+                showCustomAlert("فشل جلب البيانات. تأكد من صحة الباركود.");
             }
         }
 
