@@ -132,7 +132,6 @@
             document.getElementById('alertModal').classList.remove('active');
         }
 
-        // دوال نافذة التأكيد المخصصة
         function showCustomConfirm(message, callback) {
             document.getElementById('confirmMessage').textContent = message;
             document.getElementById('confirmModal').classList.add('active');
@@ -210,7 +209,7 @@
                 );
             } catch(err) {
                 console.error(err);
-                showCustomAlert("تعذر الوصول إلى الكاميرا. تأكد من منح صلاحية الكاميرا للمتصفح.");
+                showCustomAlert("تعذر الوصول إلى الكاميرا. تأكد من منح صلاحية الكاميرا.");
                 document.getElementById('scanButton').style.display = 'block';
                 document.getElementById('scanStatus').style.display = 'none';
             }
