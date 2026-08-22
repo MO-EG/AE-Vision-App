@@ -43,6 +43,9 @@
         .detail-row { display: flex; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 10px; border-radius: 8px; margin: 6px 0; }
         .detail-row .label { color: #aaa; }
         .detail-row .value { color: var(--text); font-weight: bold; }
+        .pay-badge { display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-family:'Tajawal', sans-serif; }
+        .pay-badge.not-paid { width:22px; height:22px; border-radius:50%; background: rgba(178,34,34,0.18); border: 2px solid rgba(178,34,34,0.5); }
+        .pay-badge.paid { padding:8px 16px; border-radius:20px; background: rgba(40,167,69,0.18); border: 2px solid rgba(40,167,69,0.6); color:#2ecc71; font-size:15px; }
     </style>
 </head>
 <body>
@@ -83,6 +86,7 @@
                 <span class="label">ترتيب الصف</span>
                 <span class="value" id="detailRankGrade">-</span>
             </div>
+            <div id="detailPay" style="margin: 10px 0;"></div>
             <div id="detailEval" style="color:#aaa; font-size:14px; margin:8px 0;"></div>
             <div id="detailExams" style="color:#aaa; font-size:14px;"></div>
             <div id="detailAbsences" style="color:#aaa; font-size:14px;"></div>
@@ -229,7 +233,8 @@
                     RankGrade: student["الترتيب على الصف"] || "-",
                     Evaluations: student["Evaluations"] || "لا يوجد",
                     Exams: student["Exams"] || "لا يوجد",
-                    Absences: student["Absences"] || "لا يوجد"
+                    Absences: student["Absences"] || "لا يوجد",
+                    Pay: student["Pay"] || "لا يوجد"
                 };
 
                 const existingIndex = scannedStudents.findIndex(s => s.id === id);
@@ -268,7 +273,8 @@
                         RankGrade: student["الترتيب على الصف"] || s.RankGrade,
                         Evaluations: student["Evaluations"] || s.Evaluations,
                         Exams: student["Exams"] || s.Exams,
-                        Absences: student["Absences"] || s.Absences
+                        Absences: student["Absences"] || s.Absences,
+                        Pay: student["Pay"] || s.Pay
                     };
                 } catch(e) { 
                     console.warn('فشل تحديث الطالب', s.id, e); 
@@ -284,6 +290,13 @@
             document.getElementById('detailScore').innerHTML = `🏅 ${s.TotalScore}`;
             document.getElementById('detailRankGroup').textContent = s.RankGroup;
             document.getElementById('detailRankGrade').textContent = s.RankGrade;
+
+            const payVal = (s.Pay || "").toString().trim();
+            if (!payVal || payVal === "لا يوجد") {
+                document.getElementById('detailPay').innerHTML = '<span class="pay-badge not-paid" title=""></span>';
+            } else {
+                document.getElementById('detailPay').innerHTML = `<span class="pay-badge paid">${payVal}</span>`;
+            }
 
             let evalHtml = '';
             if (s.Evaluations && s.Evaluations.trim() !== 'لا يوجد' && s.Evaluations.trim() !== '') {
